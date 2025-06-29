@@ -30,8 +30,8 @@
     "@types/react-dom": "19.1.6",
     "drizzle-kit": "^0.31.1",
     "miniflare": "^4.20250617.3",
-    "prettier": "3.5.3",
     "postcss": "8.5.6",
+    "prettier": "3.5.3",
     "tailwindcss": "4.1.10",
     "typescript": "5.8.3",
     "wrangler": "^4.20.5"

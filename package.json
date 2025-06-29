@@ -5,21 +5,35 @@
   "private": true,
   "scripts": {
     "dev": "waku dev",
-    "build": "waku build",
-    "start": "waku start"
+    "build": "waku build --with-cloudflare",
+    "start": "wrangler dev",
+    "cf-typegen": "wrangler types",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "wrangler d1 migrations apply --local DB",
+    "db:seed": "wrangler d1 execute --local --file=./src/db/seed.sql",
+    "db:drop": "rm -rf ./.wrangler",
+    "db:migrate-production": "wrangler d1 migrations apply --remote",
+    "db:seed-production": "wrangler d1 execute --remote --file=./drizzle/seed--production.sql"
   },
   "dependencies": {
+    "drizzle-orm": "^0.44.2",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-server-dom-webpack": "19.1.0",
     "waku": "0.23.3"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250620.0",
     "@tailwindcss/postcss": "4.1.10",
     "@types/react": "19.1.8",
     "@types/react-dom": "19.1.6",
+    "drizzle-kit": "^0.31.1",
+    "miniflare": "^4.20250617.3",
+    "prettier": "3.5.3",
     "postcss": "8.5.6",
     "tailwindcss": "4.1.10",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "wrangler": "^4.20.5"
   }
 }

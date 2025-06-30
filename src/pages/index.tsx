@@ -1,35 +1,31 @@
-import { Link } from 'waku';
-
-import { Counter } from '../components/counter';
+import { getDB } from '../db';
+import { delay } from '../utils';
+import { ProjectList } from '../components/project-list';
+import { Task } from '../db/types';
 
 export default async function HomePage() {
-  const data = await getData();
+  const db = getDB();
+  const projects = await db.query.projects.findMany({
+    with: {
+      tasks: true,
+    },
+  });
 
-  return (
-    <div>
-      <title>{data.title}</title>
-      <h1 className="text-4xl font-bold tracking-tight">{data.headline}</h1>
-      <p>{data.body}</p>
-      <Counter />
-      <Link to="/about" className="mt-4 inline-block underline">
-        About page
-      </Link>
-    </div>
-  );
+  await delay(500);
+
+  const projectsWithProgress = projects.map((project) => ({
+    ...project,
+    progress: calculateProjectProgress(project.tasks),
+  }));
+
+  return <ProjectList projects={projectsWithProgress} />;
 }
 
-const getData = async () => {
-  const data = {
-    title: 'Waku',
-    headline: 'Waku',
-    body: 'Hello world!',
-  };
+export function calculateProjectProgress(tasks: Task[]): number | null {
+  if (!tasks || tasks.length === 0) {
+    return null;
+  }
 
-  return data;
-};
-
-export const getConfig = async () => {
-  return {
-    render: 'static',
-  } as const;
-};
+  const completedTasks = tasks.filter((task) => task.completedAt !== null);
+  return Math.round((completedTasks.length / tasks.length) * 100);
+}

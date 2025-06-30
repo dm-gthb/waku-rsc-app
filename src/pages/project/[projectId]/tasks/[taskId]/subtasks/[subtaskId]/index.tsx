@@ -1,6 +1,6 @@
 import { Link } from 'waku';
-import { delay } from '../../../../../../utils';
-import { getDB } from '../../../../../../db';
+import { delay } from '../../../../../../../utils';
+import { getDB } from '../../../../../../../db';
 
 export default async function SubtaskPage({ subtaskId }: { subtaskId: string }) {
   const db = getDB();
@@ -25,12 +25,6 @@ export default async function SubtaskPage({ subtaskId }: { subtaskId: string }) 
 
   return (
     <div>
-      <Link
-        to={`/project/${task.projectId}/tasks/${task.parentTask?.id}`}
-        className="hover:underline inline-block mb-6 p-2 -ml-2"
-      >
-        Back to parent Task
-      </Link>
       <h1>
         {task.title} (subtask for {task.parentTask?.title})
       </h1>

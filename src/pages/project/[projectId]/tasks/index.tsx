@@ -26,12 +26,7 @@ export default async function ProjectTasksPage({ projectId }: { projectId: strin
 
   return (
     <div>
-      <Link to="/" className="hover:underline inline-block mb-6 p-2 -ml-2">
-        Back to Projects
-      </Link>
-
       <h1 className="text-2xl font-bold mb-4">{project.title}</h1>
-
       <div className="flex flex-col">
         {tasks.map((task) => (
           <TaskItem key={task.id} task={task} />
@@ -53,7 +48,7 @@ function TaskItem({
       <Link
         to={
           isSubtask
-            ? `/project/${task.projectId}/tasks/subtasks/${task.id}`
+            ? `/project/${task.projectId}/tasks/${task.parentTaskId}/subtasks/${task.id}`
             : `/project/${task.projectId}/tasks/${task.id}`
         }
         className="border-b border-b-gray-100 py-3"

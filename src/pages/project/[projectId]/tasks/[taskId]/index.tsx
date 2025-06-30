@@ -24,12 +24,6 @@ export default async function TaskPage({ taskId }: { taskId: string }) {
 
   return (
     <div>
-      <Link
-        to={`/project/${task.projectId}/tasks`}
-        className="hover:underline inline-block mb-6 p-2 -ml-2"
-      >
-        Back to project tasks
-      </Link>
       <h1 className="text-2xl font-bold mb-4">{task.title}</h1>
 
       {task.description && <p className="mb-8">{task.description}</p>}
@@ -43,7 +37,9 @@ export default async function TaskPage({ taskId }: { taskId: string }) {
           <ul className="pl-6">
             {subtasks.map((subtask) => (
               <li key={subtask.id} className="border-b border-b-gray-100 py-3 block">
-                <Link to={`/project/${task.projectId}/tasks/subtasks/${subtask.id}`}>
+                <Link
+                  to={`/project/${task.projectId}/tasks/${task.id}/subtasks/${subtask.id}`}
+                >
                   {subtask.title}
                 </Link>
               </li>

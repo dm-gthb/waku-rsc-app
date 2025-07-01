@@ -1,6 +1,6 @@
-import { Link } from 'waku';
 import { getDB } from '../../../../../db';
 import { delay } from '../../../../../utils';
+import { TaskList } from '../../../../../components/task-list';
 
 export default async function TaskPage({ taskId }: { taskId: string }) {
   const db = getDB();
@@ -34,17 +34,7 @@ export default async function TaskPage({ taskId }: { taskId: string }) {
             Subtasks {subtasks.filter(({ completedAt }) => completedAt !== null).length} /{' '}
             {subtasks.length}
           </h2>
-          <ul className="pl-6">
-            {subtasks.map((subtask) => (
-              <li key={subtask.id} className="border-b border-b-gray-100 py-3 block">
-                <Link
-                  to={`/project/${task.projectId}/tasks/${task.id}/subtasks/${subtask.id}`}
-                >
-                  {subtask.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <TaskList tasks={subtasks} isSubtaskList />
         </>
       )}
     </div>

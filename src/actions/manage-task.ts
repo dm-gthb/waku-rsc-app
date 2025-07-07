@@ -5,15 +5,16 @@ import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
 
-export async function manageTask(_prevState: unknown, formData: FormData) {
+export async function manageTask(formData: FormData) {
   const taskId = formData.get('taskId') as string;
-  const isToCompleteIntension = formData.get('isToCompleteIntension') as string;
+  const isToCompleteIntension = formData.get('isToCompleteIntension') as 'true' | 'false';
   const isCompleting = isToCompleteIntension === 'true';
 
   const db = getDB();
   let originalCompletedAt: string | null = null;
+  const updatedTaskIds = new Set<string>([taskId]);
 
-  await delay(400);
+  await delay(2000);
 
   try {
     const currentTaskState = await db
@@ -32,10 +33,65 @@ export async function manageTask(_prevState: unknown, formData: FormData) {
       .where(eq(tasks.id, taskId));
 
     try {
+      const subtasks = await db
+        .select({ id: tasks.id })
+        .from(tasks)
+        .where(eq(tasks.parentTaskId, taskId));
+
+      subtasks.forEach((subtask) => updatedTaskIds.add(subtask.id));
+
       await db
         .update(tasks)
         .set({ completedAt: isCompleting ? new Date().toISOString() : null })
         .where(eq(tasks.parentTaskId, taskId));
+
+      const taskInfo = await db
+        .select({ parentTaskId: tasks.parentTaskId })
+        .from(tasks)
+        .where(eq(tasks.id, taskId))
+        .get();
+
+      if (taskInfo?.parentTaskId) {
+        const parentId = taskInfo.parentTaskId;
+        const allSiblingTasks = await db
+          .select({ id: tasks.id, completedAt: tasks.completedAt })
+          .from(tasks)
+          .where(eq(tasks.parentTaskId, parentId));
+
+        const allCompleted = allSiblingTasks.every((task) => task.completedAt !== null);
+
+        updatedTaskIds.add(parentId);
+
+        await db
+          .update(tasks)
+          .set({
+            completedAt: allCompleted ? new Date().toISOString() : null,
+          })
+          .where(eq(tasks.id, parentId));
+      }
+
+      const updatedTasks = await db.select().from(tasks).where(eq(tasks.id, taskId));
+
+      const updatedSubtasks = await db
+        .select()
+        .from(tasks)
+        .where(eq(tasks.parentTaskId, taskId));
+
+      let parentTask: typeof updatedTasks = [];
+      if (taskInfo?.parentTaskId && updatedTaskIds.has(taskInfo.parentTaskId)) {
+        parentTask = await db
+          .select()
+          .from(tasks)
+          .where(eq(tasks.id, taskInfo.parentTaskId));
+      }
+
+      const allUpdatedTasks = [...updatedTasks, ...updatedSubtasks, ...parentTask];
+
+      return {
+        success: true,
+        error: null,
+        updatedTasks: allUpdatedTasks,
+      };
     } catch (subtaskError) {
       console.error('Error updating subtasks, attempting rollback:', subtaskError);
 
@@ -46,11 +102,6 @@ export async function manageTask(_prevState: unknown, formData: FormData) {
 
       throw new Error('Failed to update subtasks and rolled back main task update');
     }
-
-    return {
-      success: true,
-      error: null,
-    };
   } catch (error) {
     console.error('Error updating task completion status:', error);
     return {
@@ -59,6 +110,7 @@ export async function manageTask(_prevState: unknown, formData: FormData) {
         error instanceof Error
           ? error.message
           : 'Failed to update task completion status',
+      updatedTasks: [],
     };
   }
 }

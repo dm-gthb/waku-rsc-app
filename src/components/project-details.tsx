@@ -140,14 +140,14 @@ function ProjectInfo({ project: initProject }: { project: ProjectWithTasks }) {
               <div className="flex flex-col w-full border border-gray-300 p-4 rounded">
                 <input type="hidden" name="projectId" value={project.id} />
                 <input
-                  className="text-2xl font-bold mb-4"
+                  className="text-2xl font-bold mb-2 p-1"
                   name="title"
                   defaultValue={project.title ?? ''}
                   autoFocus
                 />
                 <textarea
                   rows={2}
-                  className="mb-1"
+                  className="p-1"
                   name="description"
                   placeholder="Project description"
                   defaultValue={project.description ?? ''}

@@ -137,17 +137,17 @@ function ProjectInfo({ project: initProject }: { project: ProjectWithTasks }) {
         <form action={formAction} className="mb-4">
           <fieldset disabled={isPending} className={`${isPending ? 'opacity-50' : ''}`}>
             <div className="flex justify-between gap-4">
-              <div className="flex flex-col w-full border border-gray-300 p-4 rounded">
+              <div className="flex flex-col w-full border border-gray-300 p-2 rounded">
                 <input type="hidden" name="projectId" value={project.id} />
                 <input
-                  className="text-2xl font-bold mb-2 p-1"
+                  className="text-2xl font-bold mb-1 p-2"
                   name="title"
                   defaultValue={project.title ?? ''}
                   autoFocus
                 />
                 <textarea
                   rows={2}
-                  className="p-1"
+                  className="p-2"
                   name="description"
                   placeholder="Project description"
                   defaultValue={project.description ?? ''}

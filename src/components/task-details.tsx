@@ -162,10 +162,7 @@ function TaskInfo({
     <div>
       {isEditMode ? (
         <form action={infoFormAction} className="mb-4">
-          <fieldset
-            disabled={isPending || isPendingDeletion}
-            className={`${isPending || isPendingDeletion ? 'opacity-50' : ''}`}
-          >
+          <fieldset disabled={isPending} className={`${isPending ? 'opacity-50' : ''}`}>
             <div className="flex justify-between gap-4">
               <div className="flex flex-col w-full border border-gray-300 p-2 rounded-lg">
                 <input type="hidden" name="taskId" value={task.id} />
@@ -352,97 +349,3 @@ function TaskSubtasks({
     </div>
   );
 }
-
-// export function TaskDetails({ task: initTask }: { task: TaskWithSubtasks }) {
-//   const [isEditMode, setIsEditMode] = useState(false);
-//   const [task, setTask] = useState(initTask);
-
-//   const [formState, formAction, isPending] = useActionState(
-//     async (_prevState: unknown, formData: FormData) => {
-//       const result = await createTask(_prevState, formData);
-//       if (result.success) {
-//         setIsEditMode(false);
-//         setTask((prev) => {
-//           if (result.task) {
-//             return {
-//               ...prev,
-//               subtasks: [...prev.subtasks, result.task],
-//             };
-//           }
-//           return prev;
-//         });
-//       }
-
-//       return {
-//         success: result.success,
-//         error: result.error,
-//         task: result.task,
-//       };
-//     },
-//     {
-//       success: false,
-//       error: null,
-//       task: undefined,
-//     },
-//   );
-
-//   return (
-//     <div>
-//       <div className="mb-6">
-//         <TaskList tasks={[task]} key={task.id + task.subtasks.length} />
-//       </div>
-
-//       {isEditMode && (
-//         <form action={formAction} className="mb-4">
-//           <fieldset disabled={isPending} className={`${isPending ? 'opacity-50' : ''}`}>
-//             <input type="hidden" name="projectId" value={task.projectId} />
-//             <input type="hidden" name="parentTaskId" value={task.id ?? ''} />
-//             <input type="hidden" name="completedAt" value={task.completedAt ?? ''} />
-//             <div className="flex flex-col items-end gap-2">
-//               <div className="flex flex-col w-full border border-gray-300 p-2 rounded-lg">
-//                 <input
-//                   name="title"
-//                   autoFocus
-//                   placeholder="Task name"
-//                   className="w-full mb-1 font-bold p-2"
-//                 />
-//                 <textarea
-//                   rows={2}
-//                   name="description"
-//                   placeholder="Description"
-//                   className="w-full p-2"
-//                 />
-//               </div>
-
-//               <div className="flex gap-2 items-start">
-//                 <button
-//                   onClick={() => setIsEditMode(true)}
-//                   className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-//                 >
-//                   {isPending ? 'Saving...' : 'Save'}
-//                 </button>
-//                 <button
-//                   type="button"
-//                   onClick={() => setIsEditMode(false)}
-//                   className="cursor-pointer min-w-24 bg-gray-200 hover:bg-gray-300 font-bold py-2 px-4 rounded"
-//                 >
-//                   Cancel
-//                 </button>
-//               </div>
-//             </div>
-//           </fieldset>
-//           {formState.error && <p className="text-red-500 mt-2">{formState.error}</p>}
-//         </form>
-//       )}
-
-//       {!isEditMode && (
-//         <button
-//           onClick={() => setIsEditMode(true)}
-//           className="ml-6 cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
-//         >
-//           + Add Task
-//         </button>
-//       )}
-//     </div>
-//   );
-// }

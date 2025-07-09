@@ -10,6 +10,7 @@ import { CompletionTaskButton } from './completion-task-button';
 
 type TaskWithSubtasks = Task & { subtasks?: Task[] };
 
+// rename to ProjectTaskList
 export function TaskList({ tasks: initTasks }: { tasks: Array<TaskWithSubtasks> }) {
   const [tasks, setTasks] = useState(initTasks);
   const [optimisticTasks, setOptimisticTasks] = useOptimistic(
@@ -109,6 +110,7 @@ export function TaskList({ tasks: initTasks }: { tasks: Array<TaskWithSubtasks> 
   return <List tasks={optimisticTasks} formAction={formAction} />;
 }
 
+// rename to TaskList
 export function List({
   tasks,
   isSubtaskList,
@@ -135,6 +137,7 @@ export function List({
   );
 }
 
+// rename to TaskListItem
 function TaskItem({
   task,
   formAction,
@@ -147,11 +150,12 @@ function TaskItem({
     <>
       <CompletionTaskButton task={task} formAction={formAction} />
       <Link
-        to={
-          isSubtask
-            ? `/project/${task.projectId}/tasks/${task.parentTaskId}/subtasks/${task.id}`
-            : `/project/${task.projectId}/tasks/${task.id}`
-        }
+        // to={
+        //   isSubtask
+        //     ? `/project/${task.projectId}/tasks/${task.parentTaskId}/subtasks/${task.id}`
+        //     : `/project/${task.projectId}/tasks/${task.id}`
+        // }
+        to={`/project/${task.projectId}/tasks/${task.id}`}
         className="flex flex-col gap-1 py-3 group"
       >
         <div

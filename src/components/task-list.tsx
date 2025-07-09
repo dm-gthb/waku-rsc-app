@@ -2,11 +2,12 @@
 
 import { Link } from 'waku';
 import { Task } from '../db/types';
-import { LinkIcon } from '@heroicons/react/24/outline';
+import { LinkIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 import { startTransition, useOptimistic, useState } from 'react';
 import { manageTask } from '../actions/manage-task';
 import { CompletionTaskButton } from './completion-task-button';
+import { deleteTask } from '../actions/delete-task';
 
 type TaskWithSubtasks = Task & { subtasks?: Task[] };
 
@@ -107,7 +108,79 @@ export function TaskList({ tasks: initTasks }: { tasks: Array<TaskWithSubtasks> 
     });
   }
 
-  return <List tasks={optimisticTasks} formAction={formAction} />;
+  function deleteTaskFormAction(formData: FormData) {
+    const taskId = formData.get('taskId') as string;
+
+    const deleteTasksOptimistically = (tasks: Array<TaskWithSubtasks>) => {
+      const deleteTaskRecursively = (taskList: Array<TaskWithSubtasks>) => {
+        return taskList.reduce((acc: Array<TaskWithSubtasks>, task) => {
+          if (task.id === taskId) {
+            return acc;
+          }
+
+          if (task.subtasks && task.subtasks.length > 0) {
+            const updatedSubtasks = deleteTaskRecursively(task.subtasks);
+            if (updatedSubtasks.length > 0) {
+              acc.push({ ...task, subtasks: updatedSubtasks });
+            }
+          } else {
+            acc.push(task);
+          }
+
+          return acc;
+        }, []);
+      };
+
+      return deleteTaskRecursively(tasks);
+    };
+
+    setOptimisticTasks(deleteTasksOptimistically(optimisticTasks));
+
+    startTransition(async () => {
+      await manageTaskDeletion(formData);
+    });
+  }
+
+  async function manageTaskDeletion(formData: FormData) {
+    const taskId = formData.get('taskId') as string;
+    const result = await deleteTask(formData);
+
+    startTransition(() => {
+      if (result.success) {
+        setTasks((currentTasks) => {
+          const filterTasksRecursively = (taskList: Array<TaskWithSubtasks>) => {
+            return taskList.reduce((acc: Array<TaskWithSubtasks>, task) => {
+              if (task.id === taskId) {
+                return acc; // Skip this task (delete it)
+              }
+
+              if (task.subtasks && task.subtasks.length > 0) {
+                // Recursively filter subtasks
+                const filteredSubtasks = filterTasksRecursively(task.subtasks);
+                acc.push({ ...task, subtasks: filteredSubtasks });
+              } else {
+                acc.push(task);
+              }
+
+              return acc;
+            }, []);
+          };
+
+          return filterTasksRecursively(currentTasks);
+        });
+      } else {
+        console.error('Failed to delete task:', result.error);
+      }
+    });
+  }
+
+  return (
+    <List
+      tasks={optimisticTasks}
+      formAction={formAction}
+      deleteFormAction={deleteTaskFormAction}
+    />
+  );
 }
 
 // rename to TaskList
@@ -115,21 +188,32 @@ export function List({
   tasks,
   isSubtaskList,
   formAction,
+  deleteFormAction,
 }: {
   tasks: Array<TaskWithSubtasks>;
   isSubtaskList?: boolean;
   formAction: (formData: FormData) => void;
+  deleteFormAction: (formData: FormData) => void;
 }) {
   return (
     <ul className={isSubtaskList ? 'pl-6' : ''}>
       {tasks.map((task) => (
-        <li key={task.id} className="block">
+        <li key={task.id}>
           <div className="flex gap-1 items-start border-b border-b-gray-200">
-            <TaskItem task={task} formAction={formAction} />
+            <TaskItem
+              task={task}
+              formAction={formAction}
+              deleteFormAction={deleteFormAction}
+            />
           </div>
 
           {task.subtasks && task.subtasks.length > 0 && (
-            <List tasks={task.subtasks} formAction={formAction} isSubtaskList />
+            <List
+              tasks={task.subtasks}
+              formAction={formAction}
+              deleteFormAction={deleteFormAction}
+              isSubtaskList
+            />
           )}
         </li>
       ))}
@@ -141,28 +225,25 @@ export function List({
 function TaskItem({
   task,
   formAction,
+  deleteFormAction,
 }: {
   task: TaskWithSubtasks;
   formAction: (formData: FormData) => void;
+  deleteFormAction?: (formData: FormData) => void;
 }) {
   const isSubtask = Boolean(task.parentTaskId);
   return (
-    <>
+    <div className="flex items-start gap-2 w-full group py-3">
       <CompletionTaskButton task={task} formAction={formAction} />
       <Link
-        // to={
-        //   isSubtask
-        //     ? `/project/${task.projectId}/tasks/${task.parentTaskId}/subtasks/${task.id}`
-        //     : `/project/${task.projectId}/tasks/${task.id}`
-        // }
         to={`/project/${task.projectId}/tasks/${task.id}`}
-        className="flex flex-col gap-1 py-3 group"
+        className="flex flex-col gap-1 w-full"
       >
-        <div
-          className={`${task.completedAt ? 'line-through text-gray-500' : 'group-hover:underline'}`}
+        <span
+          className={`block ${task.completedAt ? 'line-through text-gray-500 hover:text-black' : 'hover:underline'}`}
         >
           {task.title}
-        </div>
+        </span>
         {task.subtasks && task.subtasks.length > 0 && (
           <div className="flex gap-1 items-center text-gray-600">
             <LinkIcon className="inline-block w-3 h-3" />
@@ -173,6 +254,16 @@ function TaskItem({
           </div>
         )}
       </Link>
-    </>
+      <form action={deleteFormAction}>
+        <input type="hidden" name="taskId" value={task.id} />
+        <button
+          type="submit"
+          className="hidden group-hover:flex items-center gap-1 cursor-pointer hover:border-transparent hover:text-red-500 p-1 -my-1"
+        >
+          <TrashIcon width={18} height={18} />
+          <span className="sr-only">Delete task and its subtasks</span>
+        </button>
+      </form>
+    </div>
   );
 }

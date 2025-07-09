@@ -36,4 +36,4 @@ export type InferResultType<
 export type TaskWithSubtasks = InferResultType<'tasks', { subtasks: true }>;
 export type TaskWithOptionalSubtasks = InferResultType<'tasks', { subtasks?: true }>;
 
-export type ProjectWithTasks = InferResultType<'projects', { tasks?: true }>;
+export type ProjectWithTasks = InferResultType<'projects', { tasks: true }>;

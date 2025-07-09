@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { sqliteTable, text, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, primaryKey, foreignKey } from 'drizzle-orm/sqlite-core';
 import { relations } from 'drizzle-orm';
 
 const timestamps = {
@@ -51,19 +51,46 @@ export const projects = sqliteTable('projects', {
   ...timestamps,
 });
 
-export const tasks = sqliteTable('tasks', {
-  id: text('id').primaryKey(),
-  projectId: text('project_id')
-    .notNull()
-    .references(() => projects.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
-  parentTaskId: text('parent_task_id'),
-  title: text('title').notNull(),
-  description: text('description'),
-  label: text('label'),
-  priority: text('priority', { enum: ['low', 'medium', 'high'] }).default('medium'),
-  ...dateFields,
-  ...timestamps,
-});
+export const tasks = sqliteTable(
+  'tasks',
+  {
+    id: text('id').primaryKey(),
+    projectId: text('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade', onUpdate: 'cascade' }),
+    parentTaskId: text('parent_task_id'),
+    title: text('title').notNull(),
+    description: text('description'),
+    label: text('label'),
+    priority: text('priority', { enum: ['low', 'medium', 'high'] }).default('medium'),
+    ...dateFields,
+    ...timestamps,
+  },
+  (table) => {
+    return {
+      parentTaskFk: foreignKey({
+        columns: [table.parentTaskId],
+        foreignColumns: [table.id],
+        name: 'tasks_parent_task_id_fkey',
+      }).onDelete('cascade'),
+    };
+  },
+);
+
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [tasks.projectId],
+    references: [projects.id],
+  }),
+  parentTask: one(tasks, {
+    fields: [tasks.parentTaskId],
+    references: [tasks.id],
+    relationName: 'parentChild',
+  }),
+  subtasks: many(tasks, {
+    relationName: 'parentChild',
+  }),
+}));
 
 export const usersRelations = relations(users, ({ one, many }) => ({
   password: one(passwords),
@@ -80,19 +107,4 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     references: [users.id],
   }),
   tasks: many(tasks),
-}));
-
-export const tasksRelations = relations(tasks, ({ one, many }) => ({
-  project: one(projects, {
-    fields: [tasks.projectId],
-    references: [projects.id],
-  }),
-  parentTask: one(tasks, {
-    fields: [tasks.parentTaskId],
-    references: [tasks.id],
-    relationName: 'parentChild',
-  }),
-  subtasks: many(tasks, {
-    relationName: 'parentChild',
-  }),
 }));

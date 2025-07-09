@@ -1,5 +1,7 @@
 'use client';
 
+import { useRouter } from 'waku';
+import { deleteTask } from '../actions/delete-task';
 import { editTask } from '../actions/edit-task';
 import { manageTask } from '../actions/manage-task';
 import { TaskWithSubtasks } from '../db/types';
@@ -15,17 +17,37 @@ import {
 } from 'react';
 
 export function TaskDetails({ task: initTask }: { task: TaskWithSubtasks }) {
+  const router = useRouter();
   const [task, setTask] = useState(initTask);
   const [optimisticTask, setOptimisticTask] = useOptimistic(
     task,
     (_, newTask: TaskWithSubtasks) => newTask,
   );
+
+  const [_, deleteTaskFormAction, isPendingDeletion] = useActionState(
+    async (_prevState: unknown, formData: FormData) => {
+      const result = await deleteTask(formData);
+
+      if (result.success) {
+        router.replace(`/project/${task.projectId}`);
+        return result;
+      } else {
+        alert('Failed to delete task: ' + result.error);
+      }
+    },
+    {
+      success: false,
+      error: null,
+    },
+  );
+
   return (
-    <div>
+    <div className={`${isPendingDeletion ? 'opacity-50' : ''}`}>
       <TaskInfo
         task={optimisticTask}
         onInfoUpdate={setTask}
         onOptimisticUpdate={setOptimisticTask}
+        deleteTaskFormAction={deleteTaskFormAction}
       />
       <TaskSubtasks
         task={optimisticTask}
@@ -40,10 +62,12 @@ function TaskInfo({
   task,
   onInfoUpdate,
   onOptimisticUpdate,
+  deleteTaskFormAction,
 }: {
   task: TaskWithSubtasks;
   onInfoUpdate: Dispatch<SetStateAction<TaskWithSubtasks>>;
   onOptimisticUpdate: (action: TaskWithSubtasks) => void;
+  deleteTaskFormAction: (formData: FormData) => void;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -138,7 +162,10 @@ function TaskInfo({
     <div>
       {isEditMode ? (
         <form action={infoFormAction} className="mb-4">
-          <fieldset disabled={isPending} className={`${isPending ? 'opacity-50' : ''}`}>
+          <fieldset
+            disabled={isPending || isPendingDeletion}
+            className={`${isPending || isPendingDeletion ? 'opacity-50' : ''}`}
+          >
             <div className="flex justify-between gap-4">
               <div className="flex flex-col w-full border border-gray-300 p-2 rounded-lg">
                 <input type="hidden" name="taskId" value={task.id} />
@@ -200,9 +227,15 @@ function TaskInfo({
             >
               Edit
             </button>
-            <button className="cursor-pointer min-w-24 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
-              Delete
-            </button>
+            <form action={deleteTaskFormAction}>
+              <input type="hidden" name="taskId" value={task.id} />
+              <button
+                type="submit"
+                className="cursor-pointer min-w-24 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </form>
           </div>
         </div>
       )}
@@ -280,10 +313,42 @@ function TaskSubtasks({
     });
   }
 
+  function deleteFormAction(formData: FormData) {
+    const taskId = formData.get('taskId') as string;
+
+    onOptimisticUpdate({
+      ...task,
+      subtasks: task.subtasks.filter((subtask) => subtask.id !== taskId),
+    });
+
+    startTransition(async () => {
+      await manageTaskDeletion(formData);
+    });
+  }
+
+  async function manageTaskDeletion(formData: FormData) {
+    const taskId = formData.get('taskId') as string;
+    const result = await deleteTask(formData);
+    if (result.success) {
+      startTransition(() => {
+        onSubtaskUpdate((prev) => ({
+          ...prev,
+          subtasks: prev.subtasks.filter((subtask) => subtask.id !== taskId),
+        }));
+      });
+    } else {
+      console.error('Failed to delete task:', result.error);
+    }
+  }
+
   return (
     <div>
       <h3>Subtasks</h3>
-      <List tasks={task.subtasks} formAction={formAction} />
+      <List
+        tasks={task.subtasks}
+        formAction={formAction}
+        deleteFormAction={deleteFormAction}
+      />
     </div>
   );
 }

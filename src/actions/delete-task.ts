@@ -17,11 +17,12 @@ export async function deleteTask(formData: FormData) {
   await delay(3000);
 
   try {
+    // throw new Error('Simulated error for testing');
     const result = await db.delete(tasks).where(eq(tasks.id, taskId));
     console.log('Task deleted:', result);
     return {
       success: true,
-      result,
+      error: null,
     };
   } catch (error) {
     console.error('Failed to delete task:', error);

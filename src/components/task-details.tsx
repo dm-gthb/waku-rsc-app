@@ -15,6 +15,7 @@ import {
   useOptimistic,
   useState,
 } from 'react';
+import { createTask } from '../actions/create-task';
 
 export function TaskDetails({ task: initTask }: { task: TaskWithSubtasks }) {
   const router = useRouter();
@@ -249,7 +250,8 @@ function TaskSubtasks({
   onSubtaskUpdate: Dispatch<SetStateAction<TaskWithSubtasks>>;
   onOptimisticUpdate: (action: TaskWithSubtasks) => void;
 }) {
-  async function manageTaskAction(formData: FormData) {
+  const [isEditMode, setIsEditMode] = useState(false);
+  async function manageTaskCompletion(formData: FormData) {
     const { success, updatedTasks } = await manageTask(formData);
     if (success && updatedTasks && updatedTasks.length > 0) {
       const updatedSubtasks = task.subtasks.map((subtask) => {
@@ -279,7 +281,7 @@ function TaskSubtasks({
     }
   }
 
-  function formAction(formData: FormData) {
+  function taskCompletionFormAction(formData: FormData) {
     const updatedSubtasks = task.subtasks.map((subtask) => {
       if (subtask.id === formData.get('taskId')) {
         return {
@@ -306,11 +308,11 @@ function TaskSubtasks({
     });
 
     startTransition(async () => {
-      await manageTaskAction(formData);
+      await manageTaskCompletion(formData);
     });
   }
 
-  function deleteFormAction(formData: FormData) {
+  function taskDeletionFormAction(formData: FormData) {
     const taskId = formData.get('taskId') as string;
 
     onOptimisticUpdate({
@@ -338,14 +340,98 @@ function TaskSubtasks({
     }
   }
 
+  const [taskCreationFormState, taskCreationFormAction, isPendingCreation] =
+    useActionState(
+      async (_prevState: unknown, formData: FormData) => {
+        const result = await createTask(_prevState, formData);
+        if (result.success) {
+          setIsEditMode(false);
+          onSubtaskUpdate((prev) => ({
+            ...prev,
+            subtasks: [...prev.subtasks, ...(result.task ? [result.task] : [])],
+          }));
+        }
+
+        return {
+          success: result.success,
+          error: result.error,
+          task: result.task,
+        };
+      },
+      {
+        success: false,
+        error: null,
+        task: undefined,
+      },
+    );
+
   return (
     <div>
-      <h3>Subtasks</h3>
-      <List
-        tasks={task.subtasks}
-        formAction={formAction}
-        deleteFormAction={deleteFormAction}
-      />
+      {task.subtasks && task.subtasks.length > 0 && (
+        <>
+          <h3 className="font-semibold">Sub-tasks</h3>
+          <div className="mb-6">
+            <List
+              tasks={task.subtasks}
+              formAction={taskCompletionFormAction}
+              deleteFormAction={taskDeletionFormAction}
+            />
+          </div>
+        </>
+      )}
+      {isEditMode ? (
+        <form action={taskCreationFormAction} className="mb-4">
+          <fieldset
+            disabled={isPendingCreation}
+            className={`${isPendingCreation ? 'opacity-50' : ''}`}
+          >
+            <input type="hidden" name="projectId" value={task.projectId} />
+            <input type="hidden" name="parentTaskId" value={task.id ?? ''} />
+            <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-col w-full border border-gray-300 p-2 rounded-lg">
+                <input
+                  name="title"
+                  autoFocus
+                  placeholder="Task name"
+                  className="w-full mb-1 font-bold p-2"
+                />
+                <textarea
+                  rows={2}
+                  name="description"
+                  placeholder="Description"
+                  className="w-full p-2"
+                />
+              </div>
+
+              <div className="flex gap-2 items-start">
+                <button
+                  onClick={() => setIsEditMode(true)}
+                  className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+                >
+                  {isPendingCreation ? 'Saving...' : 'Save'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditMode(false)}
+                  className="cursor-pointer min-w-24 bg-gray-200 hover:bg-gray-300 font-bold py-2 px-4 rounded"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </fieldset>
+          {taskCreationFormState.error && (
+            <p className="text-red-500 mt-2">{taskCreationFormState.error}</p>
+          )}
+        </form>
+      ) : Boolean(task.completedAt) ? null : (
+        <button
+          onClick={() => setIsEditMode(true)}
+          className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+        >
+          + Add Task
+        </button>
+      )}
     </div>
   );
 }

@@ -5,7 +5,14 @@ import { manageTask } from '../actions/manage-task';
 import { TaskWithSubtasks } from '../db/types';
 import { CompletionTaskButton } from './completion-task-button';
 import { List } from './task-list';
-import { Dispatch, SetStateAction, useActionState, useOptimistic, useState } from 'react';
+import {
+  Dispatch,
+  SetStateAction,
+  startTransition,
+  useActionState,
+  useOptimistic,
+  useState,
+} from 'react';
 
 export function TaskDetails({ task: initTask }: { task: TaskWithSubtasks }) {
   const [task, setTask] = useState(initTask);
@@ -39,37 +46,41 @@ function TaskInfo({
   onOptimisticUpdate: (action: TaskWithSubtasks) => void;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [_, completionFormAction] = useActionState(
-    async (_prevState: unknown, formData: FormData) => {
-      const isCompleting = formData.get('isToCompleteIntension') === 'true';
 
-      const updateTaskWithSubtasks = (
-        taskToUpdate: TaskWithSubtasks,
-      ): TaskWithSubtasks => {
-        const updatedTask = {
-          ...taskToUpdate,
-          completedAt: isCompleting ? new Date().toISOString() : null,
-        };
+  function completionFormAction(formData: FormData) {
+    const isCompleting = formData.get('isToCompleteIntension') === 'true';
 
-        if (updatedTask.subtasks && updatedTask.subtasks.length > 0) {
-          return {
-            ...updatedTask,
-            subtasks: updatedTask.subtasks.map((subtask) => ({
-              ...subtask,
-              completedAt: isCompleting ? new Date().toISOString() : null,
-            })),
-          };
-        }
-
-        return updatedTask;
+    const updateTaskWithSubtasks = (taskToUpdate: TaskWithSubtasks): TaskWithSubtasks => {
+      const updatedTask = {
+        ...taskToUpdate,
+        completedAt: isCompleting ? new Date().toISOString() : null,
       };
 
-      onOptimisticUpdate(updateTaskWithSubtasks(task));
+      if (updatedTask.subtasks && updatedTask.subtasks.length > 0) {
+        return {
+          ...updatedTask,
+          subtasks: updatedTask.subtasks.map((subtask) => ({
+            ...subtask,
+            completedAt: isCompleting ? new Date().toISOString() : null,
+          })),
+        };
+      }
 
-      const result = await manageTask(formData);
+      return updatedTask;
+    };
 
-      if (result.success) {
-        setIsEditMode(false);
+    onOptimisticUpdate(updateTaskWithSubtasks(task));
+
+    startTransition(async () => {
+      await manageTaskAction(formData);
+    });
+  }
+
+  async function manageTaskAction(formData: FormData) {
+    const result = await manageTask(formData);
+
+    if (result.success) {
+      startTransition(() => {
         onInfoUpdate((prev) => {
           if (!result.updatedTasks || result.updatedTasks.length === 0) {
             return prev;
@@ -98,16 +109,9 @@ function TaskInfo({
             }),
           };
         });
-      }
-
-      return result;
-    },
-    {
-      success: false,
-      error: null,
-      updatedTasks: [],
-    },
-  );
+      });
+    }
+  }
 
   const [formState, infoFormAction, isPending] = useActionState(
     async (prevState: unknown, formData: FormData) => {
@@ -215,16 +219,15 @@ function TaskSubtasks({
   onSubtaskUpdate: Dispatch<SetStateAction<TaskWithSubtasks>>;
   onOptimisticUpdate: (action: TaskWithSubtasks) => void;
 }) {
-  const [_, formAction] = useActionState(
-    async (_prev: unknown, formData: FormData) => {
+  async function manageTaskAction(formData: FormData) {
+    const { success, updatedTasks } = await manageTask(formData);
+    if (success && updatedTasks && updatedTasks.length > 0) {
       const updatedSubtasks = task.subtasks.map((subtask) => {
-        if (subtask.id === formData.get('taskId')) {
+        const updatedSubtask = updatedTasks.find((t) => t.id === subtask.id);
+        if (updatedSubtask) {
           return {
             ...subtask,
-            completedAt:
-              formData.get('isToCompleteIntension') === 'true'
-                ? new Date().toISOString()
-                : null,
+            ...updatedSubtask,
           };
         }
         return subtask;
@@ -234,32 +237,7 @@ function TaskSubtasks({
         ({ completedAt }) => completedAt !== null,
       );
 
-      onOptimisticUpdate({
-        ...task,
-        completedAt: allSubtasksCompleted
-          ? updatedSubtasks[0]?.completedAt || new Date().toISOString()
-          : null,
-        subtasks: updatedSubtasks,
-      });
-
-      const result = await manageTask(formData);
-
-      if (result.success && result.updatedTasks && result.updatedTasks.length > 0) {
-        const updatedSubtasks = task.subtasks.map((subtask) => {
-          const updatedSubtask = result.updatedTasks.find((t) => t.id === subtask.id);
-          if (updatedSubtask) {
-            return {
-              ...subtask,
-              ...updatedSubtask,
-            };
-          }
-          return subtask;
-        });
-
-        const allSubtasksCompleted = updatedSubtasks.every(
-          ({ completedAt }) => completedAt !== null,
-        );
-
+      startTransition(() => {
         onSubtaskUpdate((prev) => ({
           ...prev,
           completedAt: allSubtasksCompleted
@@ -267,16 +245,40 @@ function TaskSubtasks({
             : null,
           subtasks: updatedSubtasks,
         }));
-      }
+      });
+    }
+  }
 
-      return result;
-    },
-    {
-      success: false,
-      error: null,
-      updatedTasks: [],
-    },
-  );
+  function formAction(formData: FormData) {
+    const updatedSubtasks = task.subtasks.map((subtask) => {
+      if (subtask.id === formData.get('taskId')) {
+        return {
+          ...subtask,
+          completedAt:
+            formData.get('isToCompleteIntension') === 'true'
+              ? new Date().toISOString()
+              : null,
+        };
+      }
+      return subtask;
+    });
+
+    const allSubtasksCompleted = updatedSubtasks.every(
+      ({ completedAt }) => completedAt !== null,
+    );
+
+    onOptimisticUpdate({
+      ...task,
+      completedAt: allSubtasksCompleted
+        ? updatedSubtasks[0]?.completedAt || new Date().toISOString()
+        : null,
+      subtasks: updatedSubtasks,
+    });
+
+    startTransition(async () => {
+      await manageTaskAction(formData);
+    });
+  }
 
   return (
     <div>

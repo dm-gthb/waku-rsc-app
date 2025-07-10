@@ -15,6 +15,7 @@ export async function createTask(_prevState: unknown, formData: FormData) {
       ? (priorityInput as 'low' | 'medium' | 'high')
       : undefined;
   const parentTaskId = formData.get('parentTaskId') as string;
+  const completedAt = formData.get('completedAt') as string;
 
   if (!title || !projectId) {
     return { error: 'Title and project ID are required.' };
@@ -33,6 +34,7 @@ export async function createTask(_prevState: unknown, formData: FormData) {
         priority,
         parentTaskId,
         projectId,
+        completedAt,
       })
       .returning();
 

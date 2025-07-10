@@ -18,6 +18,14 @@ export function CreateProjectForm() {
     { success: false, error: null, project: undefined },
   );
 
+  if (formState.success) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-8">Success!</h1>
+      </div>
+    );
+  }
+
   const inputClassName = 'border border-gray-200 rounded p-2';
   return (
     <>

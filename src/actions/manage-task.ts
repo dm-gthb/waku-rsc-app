@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
+import { requireUser } from '../utils/auth';
 
 export async function manageTask(formData: FormData) {
   const taskId = formData.get('taskId') as string;
@@ -17,6 +18,7 @@ export async function manageTask(formData: FormData) {
   await delay(2000);
 
   try {
+    await requireUser();
     const currentTaskState = await db
       .select({ completedAt: tasks.completedAt })
       .from(tasks)

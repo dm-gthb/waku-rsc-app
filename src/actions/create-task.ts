@@ -2,6 +2,7 @@
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
+import { requireUser } from '../utils/auth';
 
 export async function createTask(_prevState: unknown, formData: FormData) {
   const db = getDB();
@@ -24,6 +25,7 @@ export async function createTask(_prevState: unknown, formData: FormData) {
   await delay(2000);
 
   try {
+    await requireUser();
     const newTask = await db
       .insert(tasks)
       .values({

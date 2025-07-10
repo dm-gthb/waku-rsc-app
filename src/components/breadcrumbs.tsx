@@ -2,6 +2,7 @@
 
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Link, useRouter } from 'waku';
+import { LogoutButton } from './logout-button';
 
 type BreadcrumbItem = {
   label: string;
@@ -12,7 +13,9 @@ type BreadcrumbItem = {
 export function Breadcrumbs() {
   const { breadcrumbs } = useBreadcrumbs();
   return (
-    <div className={`${breadcrumbs.length > 1 ? 'border-b border-gray-200' : ''} pb-2`}>
+    <div
+      className={`border-b ${breadcrumbs.length > 1 ? 'border-gray-200' : 'border-transparent'} flex justify-between pb-2`}
+    >
       <nav aria-label="Breadcrumb">
         <ol className="flex items-center gap-1">
           {breadcrumbs.map((breadcrumb, index) => (
@@ -23,6 +26,7 @@ export function Breadcrumbs() {
           ))}
         </ol>
       </nav>
+      <LogoutButton />
     </div>
   );
 }

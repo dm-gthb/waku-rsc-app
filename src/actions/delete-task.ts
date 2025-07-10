@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
+import { requireUser } from '../utils/auth';
 
 export async function deleteTask(formData: FormData) {
   const taskId = formData.get('taskId') as string;
@@ -17,7 +18,12 @@ export async function deleteTask(formData: FormData) {
   await delay(3000);
 
   try {
-    // throw new Error('Simulated error for testing');
+    const user = await requireUser();
+
+    if (!user) {
+      return { error: 'User not authenticated.' };
+    }
+
     const result = await db.delete(tasks).where(eq(tasks.id, taskId));
     console.log('Task deleted:', result);
     return {

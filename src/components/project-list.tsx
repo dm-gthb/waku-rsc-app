@@ -9,15 +9,15 @@ export function ProjectList({ projects }: { projects: Array<ProjectWithTasks> })
 
   return (
     <>
-      <div className="mb-6">
-        <div className="grid grid-cols-13 border-b border-gray-200 -mx-8">
+      <div className="mb-6 border border-gray-200 rounded">
+        <div className="grid grid-cols-13 border-b border-gray-200 bg-gray-50">
           <Line className="col-span-4">Name</Line>
           <Line className="col-span-3">Priority</Line>
           <Line className="col-span-3">Target Date</Line>
           <Line className="col-span-3">Status</Line>
         </div>
 
-        <div className="flex flex-col -mx-8">
+        <div className="flex flex-col">
           {projectsWithProgress.map(({ id, title, priority, targetDate, progress }) => (
             <Link
               key={id}
@@ -53,7 +53,7 @@ export function ProjectList({ projects }: { projects: Array<ProjectWithTasks> })
       </div>
       <Link
         to="/create-project"
-        className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 ml-4 rounded"
+        className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
       >
         + Add Project
       </Link>
@@ -68,11 +68,7 @@ function Line({
   children: React.ReactNode;
   className?: string;
 }) {
-  return (
-    <div className={`flex-1 py-3 px-12 ${className}`} style={{ minWidth: 0 }}>
-      {children}
-    </div>
-  );
+  return <div className={`p-3 ${className}`}>{children}</div>;
 }
 
 function getPriorityColor(priority: string): string {

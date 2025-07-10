@@ -10,7 +10,7 @@ import { deleteProject } from '../actions/delete-project';
 
 export function ProjectDetails({ project }: { project: ProjectWithTasks }) {
   const router = useRouter();
-  const [_, deleteProjectFormAction, isPendingDeletion] = useActionState(
+  const [formState, deleteProjectFormAction, isPendingDeletion] = useActionState(
     async (_prevState: unknown, formData: FormData) => {
       const result = await deleteProject(formData);
 
@@ -26,6 +26,15 @@ export function ProjectDetails({ project }: { project: ProjectWithTasks }) {
       error: null,
     },
   );
+
+  if (formState?.success) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-8">Success!</h1>
+      </div>
+    );
+  }
+
   return (
     <div className={`${isPendingDeletion ? 'opacity-50' : ''}`}>
       <ProjectInfo deleteProjectFormAction={deleteProjectFormAction} project={project} />

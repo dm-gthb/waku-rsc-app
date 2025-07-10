@@ -25,7 +25,7 @@ export function TaskDetails({ task: initTask }: { task: TaskWithSubtasks }) {
     (_, newTask: TaskWithSubtasks) => newTask,
   );
 
-  const [_, deleteTaskFormAction, isPendingDeletion] = useActionState(
+  const [deleteTaskFormState, deleteTaskFormAction, isPendingDeletion] = useActionState(
     async (_prevState: unknown, formData: FormData) => {
       const result = await deleteTask(formData);
 
@@ -41,6 +41,14 @@ export function TaskDetails({ task: initTask }: { task: TaskWithSubtasks }) {
       error: null,
     },
   );
+
+  if (deleteTaskFormState?.success) {
+    return (
+      <div className="text-center">
+        <h1 className="text-2xl font-bold mb-8">Success!</h1>
+      </div>
+    );
+  }
 
   return (
     <div className={`${isPendingDeletion ? 'opacity-50' : ''}`}>
@@ -332,6 +340,7 @@ function TaskSubtasks({
         }));
       });
     } else {
+      alert('Failed to delete task. Please try again.');
       console.error('Failed to delete task:', result.error);
     }
   }

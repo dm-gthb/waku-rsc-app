@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
 import { delay } from '../utils';
+import { requireUser } from '../utils/auth';
 
 export async function editProject(_prevState: unknown, formData: FormData) {
   const projectId = formData.get('projectId') as string;
@@ -21,7 +22,7 @@ export async function editProject(_prevState: unknown, formData: FormData) {
   await delay(2000);
 
   try {
-    // throw new Error('Simulated error for testing');
+    await requireUser();
     await db
       .update(projects)
       .set({

@@ -1,16 +1,12 @@
 import { Breadcrumbs } from '../../components/breadcrumbs';
 
-export default function ProjectsContentLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <div className="mb-6">
+    <>
+      <header className="mb-6">
         <Breadcrumbs />
-      </div>
+      </header>
       {children}
-    </div>
+    </>
   );
 }

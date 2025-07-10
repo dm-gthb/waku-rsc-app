@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
 import { delay } from '../utils';
+import { requireUser } from '../utils/auth';
 
 export async function deleteProject(formData: FormData) {
   const projectId = formData.get('projectId') as string;
@@ -17,7 +18,7 @@ export async function deleteProject(formData: FormData) {
   await delay(3000);
 
   try {
-    // throw new Error('Simulated error for testing');
+    await requireUser();
     const result = await db.delete(projects).where(eq(projects.id, projectId));
     console.log('Project deleted:', result);
     return {

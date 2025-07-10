@@ -155,7 +155,6 @@ export function TaskList({ tasks: initTasks }: { tasks: Array<TaskWithSubtasks> 
               }
 
               if (task.subtasks && task.subtasks.length > 0) {
-                // Recursively filter subtasks
                 const filteredSubtasks = filterTasksRecursively(task.subtasks);
                 acc.push({ ...task, subtasks: filteredSubtasks });
               } else {
@@ -169,6 +168,7 @@ export function TaskList({ tasks: initTasks }: { tasks: Array<TaskWithSubtasks> 
           return filterTasksRecursively(currentTasks);
         });
       } else {
+        alert('Failed to delete task. Please try again.');
         console.error('Failed to delete task:', result.error);
       }
     });

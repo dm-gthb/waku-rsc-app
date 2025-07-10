@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
+import { requireUser } from '../utils/auth';
 
 export async function editTask(_prevState: unknown, formData: FormData) {
   const taskId = formData.get('taskId') as string;
@@ -20,6 +21,7 @@ export async function editTask(_prevState: unknown, formData: FormData) {
   await delay(3000);
 
   try {
+    await requireUser();
     const updateData: Record<string, any> = { title, description };
     if (priority) {
       updateData.priority = priority;

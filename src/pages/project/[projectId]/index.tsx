@@ -1,8 +1,10 @@
 import { getDB } from '../../../db';
 import { delay } from '../../../utils';
 import { ProjectDetails } from '../../../components/project-details';
+import { requireUser } from '../../../utils/auth';
 
 export default async function ProjectDetailsPage({ projectId }: { projectId: string }) {
+  await requireUser();
   const db = getDB();
   const project = await db.query.projects.findFirst({
     where: (projects, { eq }) => eq(projects.id, projectId),

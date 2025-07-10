@@ -20,7 +20,7 @@ export function CreateProjectForm() {
 
   const inputClassName = 'border border-gray-200 rounded p-2';
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <>
       <h1 className="text-2xl font-bold mb-4">Create Project</h1>
       <form action={formAction} className="space-y-4">
         <fieldset
@@ -77,6 +77,6 @@ export function CreateProjectForm() {
         </fieldset>
         {formState.error && <p className="text-red-500 mt-2">{formState.error}</p>}
       </form>
-    </div>
+    </>
   );
 }

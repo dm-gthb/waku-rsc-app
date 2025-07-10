@@ -212,11 +212,7 @@ function TaskInfo({
                 {task.title}
               </h1>
             </div>
-            <p>
-              Completion status:{' '}
-              <span className="font-mono">{task.completedAt ? 'Done' : 'Not Done'}</span>
-            </p>
-            {task.description && <p className="mb-8">Description: {task.description}</p>}
+            {task.description && <p className="mb-8">{task.description}</p>}
           </div>
           <div className="flex gap-2 items-start">
             <button

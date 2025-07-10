@@ -1,12 +1,12 @@
 import { Link } from 'waku';
-import { Project } from '../db/types';
+import { ProjectWithTasks, Task } from '../db/types';
 
-type ProjectWithProgress = Project & {
-  progress: number | null;
-  tasks?: any[];
-};
+export function ProjectList({ projects }: { projects: Array<ProjectWithTasks> }) {
+  const projectsWithProgress = projects.map((project) => ({
+    ...project,
+    progress: calculateProjectProgress(project.tasks),
+  }));
 
-export function ProjectList({ projects }: { projects: Array<ProjectWithProgress> }) {
   return (
     <>
       <div className="mb-6">
@@ -18,7 +18,7 @@ export function ProjectList({ projects }: { projects: Array<ProjectWithProgress>
         </div>
 
         <div className="flex flex-col -mx-8">
-          {projects.map(({ id, title, priority, targetDate, progress }) => (
+          {projectsWithProgress.map(({ id, title, priority, targetDate, progress }) => (
             <Link
               key={id}
               to={`/project/${id}`}
@@ -93,4 +93,13 @@ function getProgressColor(progress: number): string {
   if (progress >= 50) return 'bg-blue-100 text-blue-800';
   if (progress > 0) return 'bg-amber-100 text-amber-800';
   return 'bg-gray-100 text-gray-800';
+}
+
+function calculateProjectProgress(tasks: Task[]): number | null {
+  if (!tasks || tasks.length === 0) {
+    return null;
+  }
+
+  const completedTasks = tasks.filter((task) => task.completedAt !== null);
+  return Math.round((completedTasks.length / tasks.length) * 100);
 }

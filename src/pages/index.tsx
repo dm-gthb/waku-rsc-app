@@ -15,6 +15,7 @@ export default async function HomePage() {
 
   const db = getDB();
   const projects = await db.query.projects.findMany({
+    where: (projects, { eq }) => eq(projects.userId, user.id),
     with: {
       tasks: true,
     },

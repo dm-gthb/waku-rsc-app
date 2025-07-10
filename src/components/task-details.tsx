@@ -429,7 +429,7 @@ function TaskSubtasks({
             <p className="text-red-500 mt-2">{taskCreationFormState.error}</p>
           )}
         </form>
-      ) : Boolean(task.completedAt) ? null : (
+      ) : Boolean(task.completedAt) ? null : task.parentTaskId ? null : (
         <button
           onClick={() => setIsEditMode(true)}
           className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"

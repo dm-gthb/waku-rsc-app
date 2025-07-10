@@ -1,15 +1,34 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { useRouter } from 'waku';
 import { ProjectWithTasks } from '../db/types';
 import { TaskList } from './task-list';
 import { editProject } from '../actions/edit-project';
 import { createTask } from '../actions/create-task';
+import { deleteProject } from '../actions/delete-project';
 
 export function ProjectDetails({ project }: { project: ProjectWithTasks }) {
+  const router = useRouter();
+  const [_, deleteProjectFormAction, isPendingDeletion] = useActionState(
+    async (_prevState: unknown, formData: FormData) => {
+      const result = await deleteProject(formData);
+
+      if (result.success) {
+        router.replace(`/`);
+        return result;
+      } else {
+        alert('Failed to delete project: ' + result.error);
+      }
+    },
+    {
+      success: false,
+      error: null,
+    },
+  );
   return (
-    <div>
-      <ProjectInfo project={project} />
+    <div className={`${isPendingDeletion ? 'opacity-50' : ''}`}>
+      <ProjectInfo deleteProjectFormAction={deleteProjectFormAction} project={project} />
       <ProjectTasks project={project} />
     </div>
   );
@@ -107,10 +126,16 @@ function ProjectTasks({ project: initProject }: { project: ProjectWithTasks }) {
   );
 }
 
-function ProjectInfo({ project: initProject }: { project: ProjectWithTasks }) {
+function ProjectInfo({
+  project: initProject,
+  deleteProjectFormAction,
+}: {
+  project: ProjectWithTasks;
+  deleteProjectFormAction: (formData: FormData) => void;
+}) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [project, setProject] = useState(initProject);
-  const [formState, formAction, isPending] = useActionState(
+  const [editProjectFormState, editProjectFormAction, isEditPending] = useActionState(
     async (prevState: unknown, formData: FormData) => {
       const result = await editProject(prevState, formData);
 
@@ -131,13 +156,17 @@ function ProjectInfo({ project: initProject }: { project: ProjectWithTasks }) {
       updatedProject: undefined,
     },
   );
+
   return (
     <div>
       {isEditMode ? (
-        <form action={formAction} className="mb-4">
-          <fieldset disabled={isPending} className={`${isPending ? 'opacity-50' : ''}`}>
+        <form action={editProjectFormAction} className="mb-4">
+          <fieldset
+            disabled={isEditPending}
+            className={`${isEditPending ? 'opacity-50' : ''}`}
+          >
             <div className="flex justify-between gap-4">
-              <div className="flex flex-col w-full border border-gray-300 p-2 rounded">
+              <div className="flex flex-col w-full border border-gray-300 p-2 rounded-lg">
                 <input type="hidden" name="projectId" value={project.id} />
                 <input
                   className="text-2xl font-bold mb-1 p-2"
@@ -159,7 +188,7 @@ function ProjectInfo({ project: initProject }: { project: ProjectWithTasks }) {
                   onClick={() => setIsEditMode(true)}
                   className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
                 >
-                  {isPending ? 'Saving...' : 'Save'}
+                  {isEditPending ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   type="button"
@@ -171,7 +200,9 @@ function ProjectInfo({ project: initProject }: { project: ProjectWithTasks }) {
               </div>
             </div>
           </fieldset>
-          {formState.error && <p className="text-red-500 mt-2">{formState.error}</p>}
+          {editProjectFormState.error && (
+            <p className="text-red-500 mt-2">{editProjectFormState.error}</p>
+          )}
         </form>
       ) : (
         <div className="flex justify-between gap-4">
@@ -186,9 +217,15 @@ function ProjectInfo({ project: initProject }: { project: ProjectWithTasks }) {
             >
               Edit
             </button>
-            <button className="cursor-pointer min-w-24 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
-              Delete
-            </button>
+            <form action={deleteProjectFormAction}>
+              <input type="hidden" name="projectId" value={project.id} />
+              <button
+                type="submit"
+                className="cursor-pointer min-w-24 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+              >
+                Delete
+              </button>
+            </form>
           </div>
         </div>
       )}

@@ -1,190 +1,13 @@
 'use client';
 
 import { Link } from 'waku';
-import { Task } from '../db/types';
 import { LinkIcon, TrashIcon } from '@heroicons/react/24/outline';
-
-import { startTransition, useOptimistic, useState } from 'react';
-import { manageTask } from '../actions/manage-task';
+import { Task } from '../db/types';
 import { CompletionTaskButton } from './completion-task-button';
-import { deleteTask } from '../actions/delete-task';
 
 type TaskWithSubtasks = Task & { subtasks?: Task[] };
 
-// rename to ProjectTaskList
-export function TaskList({ tasks: initTasks }: { tasks: Array<TaskWithSubtasks> }) {
-  const [tasks, setTasks] = useState(initTasks);
-  const [optimisticTasks, setOptimisticTasks] = useOptimistic(
-    tasks,
-    (_initTasks, newTasks: Array<TaskWithSubtasks>) => newTasks,
-  );
-
-  async function manageTaskAction(formData: FormData) {
-    const { success, updatedTasks, error } = await manageTask(formData);
-    startTransition(() => {
-      if (success && updatedTasks && updatedTasks.length > 0) {
-        setTasks((currentTasks) => {
-          const updatedTasksMap = new Map(updatedTasks.map((task) => [task.id, task]));
-          const updateTasksRecursively = (taskList: Array<TaskWithSubtasks>) => {
-            return taskList.map((task): TaskWithSubtasks => {
-              const updatedTask = updatedTasksMap.get(task.id);
-              const mergedTask = updatedTask ? { ...task, ...updatedTask } : task;
-
-              if (mergedTask.subtasks && mergedTask.subtasks.length > 0) {
-                return {
-                  ...mergedTask,
-                  subtasks: updateTasksRecursively(mergedTask.subtasks),
-                };
-              }
-
-              return mergedTask;
-            });
-          };
-
-          return updateTasksRecursively(currentTasks);
-        });
-      } else if (error) {
-        setTasks((currentTasks) => [...currentTasks]);
-      }
-    });
-  }
-
-  function formAction(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-    const isCompleting = formData.get('isToCompleteIntension') === 'true';
-
-    const updateTasksOptimistically = (tasks: Array<TaskWithSubtasks>) => {
-      let result = tasks.map((task): TaskWithSubtasks => {
-        if (task.id === taskId) {
-          const updatedTask = {
-            ...task,
-            completedAt: isCompleting ? new Date().toISOString() : null,
-          };
-          if (updatedTask.subtasks && updatedTask.subtasks.length > 0) {
-            return {
-              ...updatedTask,
-              subtasks: updatedTask.subtasks.map((subtask) => ({
-                ...subtask,
-                completedAt: isCompleting ? new Date().toISOString() : null,
-              })),
-            };
-          }
-          return updatedTask;
-        }
-
-        if (task.subtasks && task.subtasks.length > 0) {
-          return {
-            ...task,
-            subtasks: updateTasksOptimistically(task.subtasks),
-          };
-        }
-
-        return task;
-      });
-
-      result = result.map((task) => {
-        if (task.subtasks && task.subtasks.length > 0) {
-          const allCompleted = task.subtasks.every(
-            (subtask) => subtask.completedAt !== null,
-          );
-
-          return {
-            ...task,
-            completedAt: allCompleted
-              ? task.subtasks[0]?.completedAt || new Date().toISOString()
-              : null,
-          };
-        }
-        return task;
-      });
-
-      return result;
-    };
-
-    setOptimisticTasks(updateTasksOptimistically(optimisticTasks));
-
-    startTransition(async () => {
-      await manageTaskAction(formData);
-    });
-  }
-
-  function deleteTaskFormAction(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-
-    const deleteTasksOptimistically = (tasks: Array<TaskWithSubtasks>) => {
-      const deleteTaskRecursively = (taskList: Array<TaskWithSubtasks>) => {
-        return taskList.reduce((acc: Array<TaskWithSubtasks>, task) => {
-          if (task.id === taskId) {
-            return acc;
-          }
-
-          if (task.subtasks && task.subtasks.length > 0) {
-            const updatedSubtasks = deleteTaskRecursively(task.subtasks);
-            if (updatedSubtasks.length > 0) {
-              acc.push({ ...task, subtasks: updatedSubtasks });
-            }
-          } else {
-            acc.push(task);
-          }
-
-          return acc;
-        }, []);
-      };
-
-      return deleteTaskRecursively(tasks);
-    };
-
-    setOptimisticTasks(deleteTasksOptimistically(optimisticTasks));
-
-    startTransition(async () => {
-      await manageTaskDeletion(formData);
-    });
-  }
-
-  async function manageTaskDeletion(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-    const result = await deleteTask(formData);
-
-    startTransition(() => {
-      if (result.success) {
-        setTasks((currentTasks) => {
-          const filterTasksRecursively = (taskList: Array<TaskWithSubtasks>) => {
-            return taskList.reduce((acc: Array<TaskWithSubtasks>, task) => {
-              if (task.id === taskId) {
-                return acc; // Skip this task (delete it)
-              }
-
-              if (task.subtasks && task.subtasks.length > 0) {
-                const filteredSubtasks = filterTasksRecursively(task.subtasks);
-                acc.push({ ...task, subtasks: filteredSubtasks });
-              } else {
-                acc.push(task);
-              }
-
-              return acc;
-            }, []);
-          };
-
-          return filterTasksRecursively(currentTasks);
-        });
-      } else {
-        alert('Failed to delete task. Please try again.');
-        console.error('Failed to delete task:', result.error);
-      }
-    });
-  }
-
-  return (
-    <List
-      tasks={optimisticTasks}
-      formAction={formAction}
-      deleteFormAction={deleteTaskFormAction}
-    />
-  );
-}
-
-// rename to TaskList
-export function List({
+export function TaskList({
   tasks,
   isSubtaskList,
   formAction,
@@ -200,7 +23,7 @@ export function List({
       {tasks.map((task) => (
         <li key={task.id}>
           <div className="flex gap-1 items-start border-b border-b-gray-200">
-            <TaskItem
+            <TaskListItem
               task={task}
               formAction={formAction}
               deleteFormAction={deleteFormAction}
@@ -208,7 +31,7 @@ export function List({
           </div>
 
           {task.subtasks && task.subtasks.length > 0 && (
-            <List
+            <TaskList
               tasks={task.subtasks}
               formAction={formAction}
               deleteFormAction={deleteFormAction}
@@ -221,8 +44,7 @@ export function List({
   );
 }
 
-// rename to TaskListItem
-function TaskItem({
+function TaskListItem({
   task,
   formAction,
   deleteFormAction,
@@ -231,7 +53,6 @@ function TaskItem({
   formAction: (formData: FormData) => void;
   deleteFormAction?: (formData: FormData) => void;
 }) {
-  const isSubtask = Boolean(task.parentTaskId);
   return (
     <div className="flex items-start gap-2 w-full group py-3">
       <CompletionTaskButton task={task} formAction={formAction} />

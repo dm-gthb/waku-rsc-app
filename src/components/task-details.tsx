@@ -3,10 +3,10 @@
 import { useRouter } from 'waku';
 import { deleteTask } from '../actions/delete-task';
 import { editTask } from '../actions/edit-task';
-import { manageTask } from '../actions/manage-task';
+import { updateTaskCompletion } from '../actions/update-task-completion';
 import { TaskWithSubtasks } from '../db/types';
 import { CompletionTaskButton } from './completion-task-button';
-import { List } from './task-list';
+import { TaskList } from './task-list';
 import {
   Dispatch,
   SetStateAction,
@@ -105,12 +105,12 @@ function TaskInfo({
     onOptimisticUpdate(updateTaskWithSubtasks(task));
 
     startTransition(async () => {
-      await manageTaskAction(formData);
+      await manageTaskCompletion(formData);
     });
   }
 
-  async function manageTaskAction(formData: FormData) {
-    const result = await manageTask(formData);
+  async function manageTaskCompletion(formData: FormData) {
+    const result = await updateTaskCompletion(formData);
 
     if (result.success) {
       startTransition(() => {
@@ -256,7 +256,7 @@ function TaskSubtasks({
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   async function manageTaskCompletion(formData: FormData) {
-    const { success, updatedTasks } = await manageTask(formData);
+    const { success, updatedTasks } = await updateTaskCompletion(formData);
     if (success && updatedTasks && updatedTasks.length > 0) {
       const updatedSubtasks = task.subtasks.map((subtask) => {
         const updatedSubtask = updatedTasks.find((t) => t.id === subtask.id);
@@ -376,7 +376,7 @@ function TaskSubtasks({
         <>
           <h3 className="font-semibold">Sub-tasks</h3>
           <div className="mb-6">
-            <List
+            <TaskList
               tasks={task.subtasks}
               formAction={taskCompletionFormAction}
               deleteFormAction={taskDeletionFormAction}

@@ -6,7 +6,7 @@ import { tasks } from '../db/schema';
 import { delay } from '../utils';
 import { requireUser } from '../utils/auth';
 
-export async function manageTask(formData: FormData) {
+export async function updateTaskCompletion(formData: FormData) {
   const taskId = formData.get('taskId') as string;
   const isToCompleteIntension = formData.get('isToCompleteIntension') as 'true' | 'false';
   const isCompleting = isToCompleteIntension === 'true';

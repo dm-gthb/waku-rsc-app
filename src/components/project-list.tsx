@@ -9,51 +9,57 @@ export function ProjectList({ projects }: { projects: Array<ProjectWithTasks> })
 
   return (
     <>
-      <div className="mb-6 border border-gray-200 rounded">
-        <div className="grid grid-cols-13 border-b border-gray-200 bg-gray-50">
-          <Line className="col-span-4">Name</Line>
-          <Line className="col-span-3">Priority</Line>
-          <Line className="col-span-3">Target Date</Line>
-          <Line className="col-span-3">Status</Line>
-        </div>
+      {projectsWithProgress.length > 0 ? (
+        <div className="mb-4 border border-gray-200 rounded">
+          <div className="grid grid-cols-13 border-b border-gray-200 bg-gray-50">
+            <Line className="col-span-4">Name</Line>
+            <Line className="col-span-3">Priority</Line>
+            <Line className="col-span-3">Target Date</Line>
+            <Line className="col-span-3">Status</Line>
+          </div>
 
-        <div className="flex flex-col">
-          {projectsWithProgress.map(({ id, title, priority, targetDate, progress }) => (
-            <Link
-              key={id}
-              to={`/project/${id}`}
-              className="grid grid-cols-13 hover:bg-gray-50 border-b border-gray-100"
-            >
-              <Line className="col-span-4">{title}</Line>
-              <Line className={`col-span-3 ${getPriorityColor(priority)} font-medium`}>
-                {priority}
-              </Line>
-              <Line className="col-span-3 whitespace-nowrap">
-                {targetDate
-                  ? new Intl.DateTimeFormat('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    }).format(new Date(targetDate))
-                  : ''}
-              </Line>
-              <Line className="col-span-3">
-                {progress !== null ? (
-                  <span
-                    className={`inline-block min-w-12 py-1 px-2 rounded-full text-xs font-medium ${getProgressColor(progress)}`}
-                  >
-                    {progress}%
-                  </span>
-                ) : (
-                  <span className="text-gray-500">N/A</span>
-                )}
-              </Line>
-            </Link>
-          ))}
+          <div className="flex flex-col">
+            {projectsWithProgress.map(({ id, title, priority, targetDate, progress }) => (
+              <Link
+                key={id}
+                to={`/project/${id}`}
+                className="grid grid-cols-13 hover:bg-gray-50 border-b border-gray-100"
+              >
+                <Line className="col-span-4">{title}</Line>
+                <Line className={`col-span-3 ${getPriorityColor(priority)} font-medium`}>
+                  {priority}
+                </Line>
+                <Line className="col-span-3 whitespace-nowrap">
+                  {targetDate
+                    ? new Intl.DateTimeFormat('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                      }).format(new Date(targetDate))
+                    : ''}
+                </Line>
+                <Line className="col-span-3">
+                  {progress !== null ? (
+                    <span
+                      className={`inline-block min-w-12 py-1 px-2 rounded-full text-xs font-medium ${getProgressColor(progress)}`}
+                    >
+                      {progress}%
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">N/A</span>
+                  )}
+                </Line>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <p className="mb-4">
+          No projects yet. To create your first project, click the button below.
+        </p>
+      )}
       <Link
         to="/create-project"
-        className="cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+        className="inline-block cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
       >
         + Add Project
       </Link>

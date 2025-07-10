@@ -3,10 +3,10 @@
 import { useActionState, useState } from 'react';
 import { useRouter } from 'waku';
 import { ProjectWithTasks } from '../db/types';
-import { TaskList } from './task-list';
 import { editProject } from '../actions/edit-project';
 import { createTask } from '../actions/create-task';
 import { deleteProject } from '../actions/delete-project';
+import { ProjectTaskList } from './project-task-list';
 
 export function ProjectDetails({ project }: { project: ProjectWithTasks }) {
   const router = useRouter();
@@ -77,11 +77,11 @@ function ProjectTasks({ project: initProject }: { project: ProjectWithTasks }) {
 
   return (
     <>
-      <div className="mb-6">
+      <div className="mb-4">
         {project.tasks && project.tasks.length > 0 ? (
-          <TaskList tasks={project.tasks} key={project.tasks.length} />
+          <ProjectTaskList tasks={project.tasks} key={project.tasks.length} />
         ) : (
-          <p>No tasks for project</p>
+          <p>No tasks for project. To add a task, click the button below.</p>
         )}
       </div>
       {isEditMode ? (
@@ -183,6 +183,7 @@ function ProjectInfo({
                   className="text-2xl font-bold mb-1 p-2"
                   name="title"
                   defaultValue={project.title ?? ''}
+                  placeholder="Project title"
                   autoFocus
                 />
                 <textarea
@@ -249,7 +250,9 @@ function ProjectInfo({
         <div className="flex justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold mb-4">{project.title}</h1>
-            {project.description && <p className="mb-6">{project.description}</p>}
+            {project.description && (
+              <p className="mb-6">Description: {project.description}</p>
+            )}
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mb-8">
               <div className="flex items-center">
                 <span className="font-medium mr-2">Priority:</span>

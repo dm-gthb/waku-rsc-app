@@ -9,6 +9,8 @@ export async function editProject(_prevState: unknown, formData: FormData) {
   const projectId = formData.get('projectId') as string;
   const title = formData.get('title') as string;
   const description = formData.get('description') as string;
+  const priority = formData.get('priority') as string;
+  const targetDate = formData.get('targetDate') as string;
 
   if (!projectId || !title) {
     return { error: 'Project ID and title are required.' };
@@ -22,7 +24,12 @@ export async function editProject(_prevState: unknown, formData: FormData) {
     // throw new Error('Simulated error for testing');
     await db
       .update(projects)
-      .set({ title, description })
+      .set({
+        title,
+        description,
+        priority: priority as 'low' | 'medium' | 'high',
+        targetDate,
+      })
       .where(eq(projects.id, projectId));
 
     const updatedProjects = await db
@@ -30,6 +37,8 @@ export async function editProject(_prevState: unknown, formData: FormData) {
         id: projects.id,
         title: projects.title,
         description: projects.description,
+        priority: projects.priority,
+        targetDate: projects.targetDate,
       })
       .from(projects)
       .where(eq(projects.id, projectId));

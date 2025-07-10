@@ -6,7 +6,9 @@ import type { PathsForPages, GetConfigResponse } from 'waku/router';
 
 // prettier-ignore
 type Page =
+| { path: '/create-project'; render: 'dynamic' }
 | { path: '/'; render: 'dynamic' }
+| { path: '/project/[projectId]'; render: 'dynamic' }
 | { path: '/project/[projectId]/tasks/[taskId]'; render: 'dynamic' }
 | { path: '/project/[projectId]/tasks/[taskId]/subtasks/[subtaskId]'; render: 'dynamic' }
 | { path: '/project/[projectId]/tasks'; render: 'dynamic' };

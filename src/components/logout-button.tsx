@@ -23,7 +23,7 @@ export function LogoutButton() {
       className="cursor-pointer flex items-center gap-1.5"
     >
       <ArrowRightStartOnRectangleIcon width={20} height={20} />
-      <span>Logout</span>
+      <span className="hidden sm:inline-block">Logout</span>
     </button>
   );
 }

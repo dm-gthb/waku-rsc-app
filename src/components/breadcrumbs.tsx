@@ -54,6 +54,8 @@ function useBreadcrumbs() {
   const projectId = pathSegments[0] === 'project' ? pathSegments[1] : '';
   const taskId =
     pathSegments[2] === 'tasks' && pathSegments.length > 3 ? pathSegments[3] : '';
+  const subtaskId =
+    pathSegments[4] === 'subtasks' && pathSegments.length > 5 ? pathSegments[5] : '';
 
   const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -74,8 +76,16 @@ function useBreadcrumbs() {
       breadcrumbs.push({
         label: 'Task',
         path: `/project/${projectId}/tasks/${taskId}`,
-        isActive: true,
+        isActive: !subtaskId,
       });
+
+      if (subtaskId) {
+        breadcrumbs.push({
+          label: 'Subtask',
+          path: `/project/${projectId}/tasks/${taskId}/subtasks/${subtaskId}`,
+          isActive: true,
+        });
+      }
     }
   }
 

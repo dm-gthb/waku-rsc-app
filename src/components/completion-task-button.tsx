@@ -1,5 +1,3 @@
-'use client';
-
 import { Task } from '../db/types';
 
 export function CompletionTaskButton({

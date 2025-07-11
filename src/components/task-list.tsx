@@ -53,11 +53,16 @@ function TaskListItem({
   formAction: (formData: FormData) => void;
   deleteFormAction?: (formData: FormData) => void;
 }) {
+  const isSubtask = Boolean(task.parentTaskId);
   return (
     <div className="flex items-start gap-2 w-full group py-3">
       <CompletionTaskButton task={task} formAction={formAction} />
       <Link
-        to={`/project/${task.projectId}/tasks/${task.id}`}
+        to={
+          isSubtask
+            ? `/project/${task.projectId}/tasks/${task.parentTaskId}/subtasks/${task.id}`
+            : `/project/${task.projectId}/tasks/${task.id}`
+        }
         className="flex flex-col gap-1 w-full"
       >
         <span

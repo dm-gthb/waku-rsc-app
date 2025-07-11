@@ -5,12 +5,19 @@ import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
 import { requireUser } from '../utils/auth';
+import z from 'zod';
+
+const deleteTaskSchema = z.object({
+  taskId: z.string().nonempty('Task ID is required.'),
+});
 
 export async function deleteTask(formData: FormData) {
-  const taskId = formData.get('taskId') as string;
+  const { success, data } = deleteTaskSchema.safeParse({
+    taskId: formData.get('taskId'),
+  });
 
-  if (!taskId) {
-    return { error: 'Task ID is required.' };
+  if (!success) {
+    return { error: 'Invalid task ID.' };
   }
 
   const db = getDB();
@@ -24,8 +31,7 @@ export async function deleteTask(formData: FormData) {
       return { error: 'User not authenticated.' };
     }
 
-    const result = await db.delete(tasks).where(eq(tasks.id, taskId));
-    console.log('Task deleted:', result);
+    await db.delete(tasks).where(eq(tasks.id, data.taskId));
     return {
       success: true,
       error: null,

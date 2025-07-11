@@ -9,7 +9,7 @@ import { login } from '../actions/auth';
 const classNames = {
   input:
     'aria-[invalid]:border-red-500 p-3 border-2 rounded dark:bg-transparent disabled:text-gray-400 border-gray-200',
-  formGroup: 'flex flex-col gap-1 mb-6 last-of-type:mb-6',
+  formGroup: 'flex flex-col gap-1 mb-3',
 };
 
 export default function LoginPage() {
@@ -25,12 +25,14 @@ export default function LoginPage() {
     },
     {
       success: false,
-      message: '',
-      errors: [],
+      errorMessage: '',
+      fieldErrors: null,
     },
   );
 
-  if (formState.success) {
+  const { success, fieldErrors, errorMessage } = formState;
+
+  if (success) {
     return (
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-8">Success!</h1>
@@ -40,7 +42,10 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-8 py-4">
-      <h1 className="text-2xl font-bold mb-8">Log in to your account</h1>
+      <h1 className="text-2xl font-bold mb-2">Log in to your account</h1>
+      <div className="min-h-6 mb-4">
+        <FormErrorList errors={errorMessage ? [errorMessage] : null} />
+      </div>
       <div className="mb-4 w-full sm:w-96">
         <div>
           <form action={formAction}>
@@ -50,10 +55,15 @@ export default function LoginPage() {
                 <input
                   id="email"
                   name="email"
+                  type="email"
                   className={classNames.input}
                   autoComplete="email"
                   autoFocus
+                  required
                 />
+                <div className="min-h-6">
+                  <FormErrorList errors={fieldErrors?.email ?? null} />
+                </div>
               </div>
               <div className={classNames.formGroup}>
                 <label htmlFor="password">Password</label>
@@ -63,13 +73,14 @@ export default function LoginPage() {
                   name="password"
                   className={`${classNames.input} w-full pr-11`}
                   autoComplete="current-password"
+                  required
+                  minLength={6}
                 />
+                <div className="min-h-6">
+                  <FormErrorList errors={fieldErrors?.password ?? null} />
+                </div>
               </div>
             </fieldset>
-            <div className="mb-3">
-              <FormErrorList errors={formState.errors} />
-            </div>
-
             <button
               type="submit"
               disabled={isPending}

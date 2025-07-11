@@ -1,15 +1,33 @@
 'use server';
 
 import { eq } from 'drizzle-orm';
+import z from 'zod';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
 import { requireUser } from '../utils/auth';
 
+const updateTaskCompletionSchema = z.object({
+  taskId: z.string().nonempty('Task ID is required.'),
+  isToCompleteIntension: z.coerce.boolean(),
+});
+
 export async function updateTaskCompletion(formData: FormData) {
-  const taskId = formData.get('taskId') as string;
-  const isToCompleteIntension = formData.get('isToCompleteIntension') as 'true' | 'false';
-  const isCompleting = isToCompleteIntension === 'true';
+  const { success, data } = updateTaskCompletionSchema.safeParse({
+    taskId: formData.get('taskId'),
+    isToCompleteIntension: formData.get('isToCompleteIntension'),
+  });
+
+  if (!success) {
+    return {
+      success: false,
+      error: 'Invalid input data.',
+      updatedTasks: [],
+    };
+  }
+
+  const { taskId, isToCompleteIntension } = data;
+  const isCompleting = isToCompleteIntension === true;
 
   const db = getDB();
   let originalCompletedAt: string | null = null;

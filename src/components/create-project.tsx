@@ -3,6 +3,7 @@
 import { useActionState } from 'react';
 import { createProject } from '../actions/create-project';
 import { useRouter } from 'waku';
+import { FormErrorList } from './form-errors-list';
 
 export function CreateProjectForm() {
   const router = useRouter();
@@ -44,6 +45,7 @@ export function CreateProjectForm() {
               required
               className={inputClassName}
             />
+            <FormErrorList errors={formState.fieldErrors?.title ?? null} />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="description">Description</label>
@@ -52,7 +54,9 @@ export function CreateProjectForm() {
               id="description"
               rows={3}
               className={inputClassName}
+              maxLength={500}
             />
+            <FormErrorList errors={formState.fieldErrors?.description ?? null} />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="priority">Priority</label>
@@ -66,6 +70,7 @@ export function CreateProjectForm() {
               <option value="medium">Medium</option>
               <option value="high">High</option>
             </select>
+            <FormErrorList errors={formState.fieldErrors?.priority ?? null} />
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="targetDate">Target Date</label>
@@ -75,6 +80,7 @@ export function CreateProjectForm() {
               id="targetDate"
               className={inputClassName}
             />
+            <FormErrorList errors={formState.fieldErrors?.targetDate ?? null} />
           </div>
           <button
             type="submit"
@@ -83,7 +89,9 @@ export function CreateProjectForm() {
             {isPending ? 'Creating...' : 'Create Project'}
           </button>
         </fieldset>
-        {formState.error && <p className="text-red-500 mt-2">{formState.error}</p>}
+        <FormErrorList
+          errors={formState.errorMessage ? [formState.errorMessage] : null}
+        />
       </form>
     </>
   );

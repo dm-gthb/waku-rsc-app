@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 import { ProjectWithTasks } from '../db/types';
 import { editProject } from '../actions/edit-project';
 import ActionButton from './action-button';
+import { FormErrorList } from './form-errors-list';
 
 export function ProjectInfo({
   project: initProject,
@@ -16,7 +17,7 @@ export function ProjectInfo({
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [project, setProject] = useState(initProject);
-  const [editProjectFormState, editProjectFormAction, isEditPending] = useActionState(
+  const [formState, formAction, isEditPending] = useActionState(
     async (prevState: unknown, formData: FormData) => {
       const result = await editProject(prevState, formData);
 
@@ -35,14 +36,14 @@ export function ProjectInfo({
     },
     {
       success: false,
-      error: null,
       updatedProject: undefined,
+      errors: null,
     },
   );
 
   if (isEditMode) {
     return (
-      <form action={editProjectFormAction} className="mb-4">
+      <form action={formAction} className="mb-4">
         <fieldset
           disabled={isEditPending}
           className={`${isEditPending ? 'opacity-50' : ''}`}
@@ -56,6 +57,7 @@ export function ProjectInfo({
                 defaultValue={project.title ?? ''}
                 placeholder="Project title"
                 autoFocus
+                required
               />
               <textarea
                 rows={2}
@@ -63,8 +65,8 @@ export function ProjectInfo({
                 name="description"
                 placeholder="Project description"
                 defaultValue={project.description ?? ''}
+                maxLength={500}
               />
-
               <div className="flex flex-wrap gap-4">
                 <div className="flex flex-col">
                   <label htmlFor="priority" className="text-sm text-gray-600 mb-1">
@@ -109,44 +111,17 @@ export function ProjectInfo({
               </ActionButton>
             </div>
           </div>
+          <div className="mt-2">
+            <FormErrorList errors={formState.errors ?? null} />
+          </div>
         </fieldset>
-        {editProjectFormState.error && (
-          <p className="text-red-500 mt-2">{editProjectFormState.error}</p>
-        )}
       </form>
     );
   }
 
   return (
     <div className="flex justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-bold mb-4">{project.title}</h1>
-        {project.description && (
-          <p className="mb-6">Description: {project.description}</p>
-        )}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mb-8">
-          <div className="flex items-center gap-1">
-            <span className="font-medium">Priority:</span>
-            <span
-              className={`px-2 py-1 rounded text-white ${
-                project.priority === 'high'
-                  ? 'bg-red-500'
-                  : project.priority === 'medium'
-                    ? 'bg-yellow-500'
-                    : 'bg-green-500'
-              }`}
-            >
-              {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
-            </span>
-          </div>
-          {project.targetDate && (
-            <div className="flex items-center gap-1">
-              <span className="font-medium">Target Date:</span>
-              <span>{new Date(project.targetDate).toLocaleDateString()}</span>
-            </div>
-          )}
-        </div>
-      </div>
+      <Info project={project} />
       <div className="flex flex-col sm:flex-row gap-2 items-start">
         <ActionButton onClick={() => setIsEditMode(true)}>Edit</ActionButton>
         <form action={deleteProjectFormAction}>
@@ -155,6 +130,37 @@ export function ProjectInfo({
             Delete
           </ActionButton>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function Info({ project }: { project: ProjectWithTasks }) {
+  return (
+    <div>
+      <h1 className="text-2xl font-bold mb-4">{project.title}</h1>
+      {project.description && <p className="mb-6">Description: {project.description}</p>}
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mb-8">
+        <div className="flex items-center gap-1">
+          <span className="font-medium">Priority:</span>
+          <span
+            className={`px-2 py-1 rounded text-white ${
+              project.priority === 'high'
+                ? 'bg-red-500'
+                : project.priority === 'medium'
+                  ? 'bg-yellow-500'
+                  : 'bg-green-500'
+            }`}
+          >
+            {project.priority.charAt(0).toUpperCase() + project.priority.slice(1)}
+          </span>
+        </div>
+        {project.targetDate && (
+          <div className="flex items-center gap-1">
+            <span className="font-medium">Target Date:</span>
+            <span>{new Date(project.targetDate).toLocaleDateString()}</span>
+          </div>
+        )}
       </div>
     </div>
   );

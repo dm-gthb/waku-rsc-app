@@ -1,18 +1,11 @@
 'use client';
 
-import {
-  Dispatch,
-  SetStateAction,
-  startTransition,
-  useActionState,
-  useState,
-} from 'react';
+import { Dispatch, SetStateAction, startTransition } from 'react';
 import { TaskWithSubtasks } from '../db/types';
 import { updateTaskCompletion } from '../actions/update-task-completion';
 import { deleteTask } from '../actions/delete-task';
-import { createTask } from '../actions/create-task';
 import { TaskList } from './task-list';
-import ActionButton from './action-button';
+import { CreateTaskForm } from './create-task-form';
 
 export function Subtasks({
   task,
@@ -23,7 +16,6 @@ export function Subtasks({
   onSubtaskUpdate: Dispatch<SetStateAction<TaskWithSubtasks>>;
   onOptimisticUpdate: (action: TaskWithSubtasks) => void;
 }) {
-  const [isEditMode, setIsEditMode] = useState(false);
   async function manageTaskCompletion(formData: FormData) {
     const { success, updatedTasks } = await updateTaskCompletion(formData);
     if (success && updatedTasks && updatedTasks.length > 0) {
@@ -114,31 +106,6 @@ export function Subtasks({
     }
   }
 
-  const [taskCreationFormState, taskCreationFormAction, isPendingCreation] =
-    useActionState(
-      async (_prevState: unknown, formData: FormData) => {
-        const result = await createTask(_prevState, formData);
-        if (result.success) {
-          setIsEditMode(false);
-          onSubtaskUpdate((prev) => ({
-            ...prev,
-            subtasks: [...prev.subtasks, ...(result.task ? [result.task] : [])],
-          }));
-        }
-
-        return {
-          success: result.success,
-          error: result.error,
-          task: result.task,
-        };
-      },
-      {
-        success: false,
-        error: null,
-        task: undefined,
-      },
-    );
-
   return (
     <div>
       {task.subtasks && task.subtasks.length > 0 && (
@@ -153,50 +120,19 @@ export function Subtasks({
           </div>
         </>
       )}
-      {isEditMode ? (
-        <form action={taskCreationFormAction} className="mb-4">
-          <fieldset
-            disabled={isPendingCreation}
-            className={`${isPendingCreation ? 'opacity-50' : ''}`}
-          >
-            <input type="hidden" name="projectId" value={task.projectId} />
-            <input type="hidden" name="parentTaskId" value={task.id ?? ''} />
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex flex-col w-full border border-gray-300 p-2 rounded-lg">
-                <input
-                  name="title"
-                  autoFocus
-                  placeholder="Task name"
-                  className="w-full mb-1 font-bold p-2"
-                />
-                <textarea
-                  rows={2}
-                  name="description"
-                  placeholder="Description"
-                  className="w-full p-2"
-                />
-              </div>
-
-              <div className="flex gap-2 items-start">
-                <ActionButton disabled={isPendingCreation}>
-                  {isPendingCreation ? 'Saving...' : 'Save'}
-                </ActionButton>
-                <ActionButton
-                  variant="secondary"
-                  disabled={isPendingCreation}
-                  onClick={() => setIsEditMode(false)}
-                >
-                  Cancel
-                </ActionButton>
-              </div>
-            </div>
-          </fieldset>
-          {taskCreationFormState.error && (
-            <p className="text-red-500 mt-2">{taskCreationFormState.error}</p>
-          )}
-        </form>
-      ) : Boolean(task.completedAt) ? null : task.parentTaskId ? null : (
-        <ActionButton onClick={() => setIsEditMode(true)}>+ Add Subtask</ActionButton>
+      {!task.parentTaskId && !Boolean(task.completedAt) && (
+        <CreateTaskForm
+          projectId={task.projectId}
+          parentTaskId={task.id}
+          onTaskCreation={(createdTask) => {
+            if (createdTask) {
+              onSubtaskUpdate((prev) => ({
+                ...prev,
+                subtasks: [...prev.subtasks, createdTask],
+              }));
+            }
+          }}
+        />
       )}
     </div>
   );

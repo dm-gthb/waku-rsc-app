@@ -1,4 +1,4 @@
-export function FormErrorList({ errors }: { errors?: Array<string> | undefined }) {
+export function FormErrorList({ errors }: { errors?: Array<string> | null }) {
   return errors?.length ? (
     <ul className="flex flex-col gap-1">
       {errors.map((error, i) => (

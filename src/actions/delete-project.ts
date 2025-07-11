@@ -5,12 +5,21 @@ import { getDB } from '../db';
 import { projects } from '../db/schema';
 import { delay } from '../utils';
 import { requireUser } from '../utils/auth';
+import z from 'zod';
+
+const deleteProjectSchema = z.object({
+  projectId: z.string().nonempty('Project ID is required.'),
+});
 
 export async function deleteProject(formData: FormData) {
   const projectId = formData.get('projectId') as string;
 
-  if (!projectId) {
-    return { error: 'Project ID is required.' };
+  const { success } = deleteProjectSchema.safeParse({
+    projectId: formData.get('projectId'),
+  });
+
+  if (!success) {
+    return { error: 'Invalid project ID.' };
   }
 
   const db = getDB();
@@ -19,8 +28,7 @@ export async function deleteProject(formData: FormData) {
 
   try {
     await requireUser();
-    const result = await db.delete(projects).where(eq(projects.id, projectId));
-    console.log('Project deleted:', result);
+    await db.delete(projects).where(eq(projects.id, projectId));
     return {
       success: true,
       error: null,

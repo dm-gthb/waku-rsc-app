@@ -1,5 +1,6 @@
 'use server';
 
+import z from 'zod';
 import { delay } from '../utils';
 import {
   checkIsValidPassword,
@@ -10,21 +11,47 @@ import {
   getUserByEmail,
 } from '../utils/auth';
 
+const loginSchema = z.object({
+  email: z.email().nonempty('Email is required'),
+  password: z.string().nonempty('Password is required'),
+});
+
+const signUpSchema = z.object({
+  email: z.email().nonempty('Email is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  name: z.string().nonempty('Name is required'),
+});
+
 export async function signUp(_prev: unknown, formData: FormData) {
   try {
     await delay(1000);
 
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
+    const userData = {
+      email: formData.get('email'),
+      password: formData.get('password'),
+      name: formData.get('name'),
+    };
+
+    const { success, data, error } = signUpSchema.safeParse(userData);
+
+    if (!success) {
+      return {
+        success: false,
+        errorMessage: 'Validation failed',
+        fieldErrors: z.flattenError(error).fieldErrors,
+      };
+    }
+    const { email, password, name } = data;
 
     const existingUser = await getUserByEmail(email);
 
     if (existingUser) {
       return {
         success: false,
-        message: 'User with this email already exists',
-        errors: ['User with this email already exists'],
+        errorMessage: 'Validation failed',
+        fieldErrors: {
+          email: ['User with this email already exists'],
+        },
       };
     }
 
@@ -33,8 +60,8 @@ export async function signUp(_prev: unknown, formData: FormData) {
     if (!user) {
       return {
         success: false,
-        message: 'Failed to create user',
-        errors: ['Failed to create user'],
+        errorMessage: 'Failed to create user',
+        fieldErrors: null,
       };
     }
 
@@ -42,14 +69,15 @@ export async function signUp(_prev: unknown, formData: FormData) {
 
     return {
       success: true,
-      message: 'Account created successfully',
+      errorMessage: '',
+      fieldErrors: null,
     };
   } catch (error) {
     console.error('Sign up error:', error);
     return {
       success: false,
-      message: 'An error occurred while creating your account',
-      errors: ['Failed to create account'],
+      errorMessage: 'An error occurred while creating your account',
+      fieldErrors: null,
     };
   }
 }
@@ -58,15 +86,30 @@ export async function login(_prev: unknown, formData: FormData) {
   try {
     await delay(1000);
 
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const userData = {
+      email: formData.get('email'),
+      password: formData.get('password'),
+    };
+    const { success, data, error } = loginSchema.safeParse(userData);
+
+    if (!success) {
+      console.log(z.flattenError(error).fieldErrors);
+      return {
+        success: false,
+        errorMessage: 'Validation failed',
+        fieldErrors: z.flattenError(error).fieldErrors,
+      };
+    }
+
+    const { email, password } = data;
 
     const user = await getUserByEmail(email);
+
     if (!user) {
       return {
         success: false,
-        message: 'Invalid email or password',
-        errors: ['Invalid email or password'],
+        errorMessage: 'Invalid email or password',
+        fieldErrors: null,
       };
     }
 
@@ -74,8 +117,8 @@ export async function login(_prev: unknown, formData: FormData) {
     if (!userPassword) {
       return {
         success: false,
-        message: 'Invalid email or password',
-        errors: ['Invalid email or password'],
+        errorMessage: 'Invalid email or password',
+        fieldErrors: null,
       };
     }
 
@@ -86,8 +129,8 @@ export async function login(_prev: unknown, formData: FormData) {
     if (!isPasswordValid) {
       return {
         success: false,
-        message: 'Invalid email or password',
-        errors: ['Invalid email or password'],
+        errorMessage: 'Invalid email or password',
+        fieldErrors: null,
       };
     }
 
@@ -95,14 +138,15 @@ export async function login(_prev: unknown, formData: FormData) {
 
     return {
       success: true,
-      message: 'Signed in successfully',
+      errorMessage: '',
+      fieldErrors: null,
     };
   } catch (error) {
     console.error('Sign in error:', error);
     return {
       success: false,
-      message: 'An error occurred while signing in',
-      errors: ['Failed to sign in'],
+      errorMessage: 'An error occurred while signing in',
+      fieldErrors: null,
     };
   }
 }

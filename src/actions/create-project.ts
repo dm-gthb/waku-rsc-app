@@ -1,48 +1,64 @@
 'use server';
 
+import z from 'zod';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
 import { delay } from '../utils';
 import { requireUser } from '../utils/auth';
 
+const projectSchema = z.object({
+  title: z.string().min(1).max(100),
+  description: z.string().max(500).optional(),
+  priority: z.enum(['low', 'medium', 'high']).default('medium'),
+  targetDate: z.coerce.date().optional(),
+});
+
 export async function createProject(_prevState: unknown, formData: FormData) {
   const db = getDB();
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const priorityInput = formData.get('priority') as string;
-  const priority =
-    priorityInput && ['low', 'medium', 'high'].includes(priorityInput)
-      ? (priorityInput as 'low' | 'medium' | 'high')
-      : 'medium';
-  const targetDate = formData.get('targetDate') as string;
 
-  if (!title) {
-    return { error: 'Title is required.' };
+  const userData = {
+    title: formData.get('title'),
+    description: formData.get('description'),
+    priority: formData.get('priority'),
+    targetDate: formData.get('targetDate') as string,
+  };
+
+  const { success, error, data } = projectSchema.safeParse({
+    ...userData,
+    targetDate: userData.targetDate ? new Date(userData.targetDate) : undefined,
+  });
+
+  if (!success) {
+    return {
+      success: false,
+      errorMessage: '',
+      fieldErrors: z.flattenError(error).fieldErrors,
+    };
   }
 
+  const { title, description, priority, targetDate } = data;
   await delay(2000);
 
   try {
     const user = await requireUser();
-    const newProject = await db
+    const [newProject] = await db
       .insert(projects)
       .values({
         id: crypto.randomUUID(),
         userId: user.id,
         title,
-        description: description || undefined,
+        description,
         priority,
-        targetDate: targetDate || undefined,
+        targetDate: targetDate ? targetDate.toISOString() : undefined,
       })
       .returning();
 
-    return { success: true, project: newProject[0], error: null };
+    return { success: true, project: newProject, error: null };
   } catch (error) {
     console.error('Failed to create project:', error);
     return {
       success: false,
-      error: 'Failed to create project. Please try again.',
-      project: undefined,
+      errorMessage: 'Failed to create project. Please try again.',
     };
   }
 }

@@ -1,47 +1,63 @@
 'use server';
 
 import { eq } from 'drizzle-orm';
+import z from 'zod';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
 import { requireUser } from '../utils/auth';
 
-export async function editTask(_prevState: unknown, formData: FormData) {
-  const taskId = formData.get('taskId') as string;
-  const title = formData.get('title') as string;
-  const description = formData.get('description') as string;
-  const priority = formData.get('priority') as 'low' | 'medium' | 'high' | null;
+const editTaskSchema = z.object({
+  taskId: z.string().nonempty('Task ID is required.'),
+  title: z
+    .string()
+    .min(1, 'Title is required.')
+    .max(100, 'Title must be at most 100 characters.'),
+  description: z
+    .string()
+    .max(500, 'Description must be at most 500 characters.')
+    .optional(),
+});
 
-  if (!taskId || !title) {
-    return { error: 'Task ID and title are required.' };
+export async function editTask(_prevState: unknown, formData: FormData) {
+  const userData = {
+    taskId: formData.get('taskId'),
+    title: formData.get('title'),
+    description: formData.get('description'),
+  };
+
+  const { success, data } = editTaskSchema.safeParse(userData);
+
+  if (!success) {
+    return {
+      success: false,
+      error: 'Invalid input data.',
+    };
   }
 
   const db = getDB();
 
   await delay(3000);
 
+  const { taskId, title, description } = data;
+
   try {
     await requireUser();
     const updateData: Record<string, any> = { title, description };
-    if (priority) {
-      updateData.priority = priority;
-    }
-
     await db.update(tasks).set(updateData).where(eq(tasks.id, taskId));
 
-    const updatedTasks = await db
+    const [updatedTask] = await db
       .select({
         id: tasks.id,
         title: tasks.title,
         description: tasks.description,
-        priority: tasks.priority,
         projectId: tasks.projectId,
         completedAt: tasks.completedAt,
       })
       .from(tasks)
       .where(eq(tasks.id, taskId));
 
-    return { success: true, error: null, updatedTask: updatedTasks[0] };
+    return { success: true, error: null, updatedTask };
   } catch (error) {
     console.error('Failed to update task:', error);
     return {

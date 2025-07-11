@@ -125,8 +125,8 @@ export function ProjectInfo({
           <p className="mb-6">Description: {project.description}</p>
         )}
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 mb-8">
-          <div className="flex items-center">
-            <span className="font-medium mr-2">Priority:</span>
+          <div className="flex items-center gap-1">
+            <span className="font-medium">Priority:</span>
             <span
               className={`px-2 py-1 rounded text-white ${
                 project.priority === 'high'
@@ -140,8 +140,8 @@ export function ProjectInfo({
             </span>
           </div>
           {project.targetDate && (
-            <div className="flex items-center">
-              <span className="font-medium mr-2">Target Date:</span>
+            <div className="flex items-center gap-1">
+              <span className="font-medium">Target Date:</span>
               <span>{new Date(project.targetDate).toLocaleDateString()}</span>
             </div>
           )}

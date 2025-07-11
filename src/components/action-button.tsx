@@ -16,7 +16,7 @@ export default function ActionButton({
   const baseStyles =
     'cursor-pointer min-w-24 font-bold py-2 px-4 rounded disabled:opacity-50 disabled:pointer-events-none';
   const variants = {
-    primary: 'bg-gray-600 hover:bg-gray-700 text-white ',
+    primary: 'bg-gray-500 hover:bg-gray-600 text-white ',
     secondary: 'bg-gray-200 hover:bg-gray-300',
     danger: 'bg-red-500 hover:bg-red-600 text-white',
   };

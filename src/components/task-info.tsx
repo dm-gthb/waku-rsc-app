@@ -12,6 +12,8 @@ import { updateTaskCompletion } from '../actions/update-task-completion';
 import { editTask } from '../actions/edit-task';
 import { CompletionTaskButton } from './completion-task-button';
 import ActionButton from './action-button';
+import { UserRoleAlert } from './user-role-alert';
+import { useUser } from '../context/user';
 
 export function TaskInfo({
   task,
@@ -27,7 +29,7 @@ export function TaskInfo({
   isPendingDeletion?: boolean;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
-
+  const { user } = useUser();
   function completionFormAction(formData: FormData) {
     const isCompleting = formData.get('isToCompleteIntension') === 'true';
 
@@ -130,7 +132,7 @@ export function TaskInfo({
                 autoFocus
               />
               <textarea
-                rows={2}
+                rows={4}
                 className="p-2"
                 name="description"
                 placeholder="Task description"
@@ -139,9 +141,17 @@ export function TaskInfo({
             </div>
 
             <div className="flex gap-2 items-start">
-              <ActionButton disabled={isPending}>
-                {isPending ? 'Saving...' : 'Save'}
-              </ActionButton>
+              {user?.role === 'demo' ? (
+                <UserRoleAlert>
+                  <ActionButton disabled={isPending}>
+                    {isPending ? 'Saving...' : 'Save'}
+                  </ActionButton>
+                </UserRoleAlert>
+              ) : (
+                <ActionButton disabled={isPending}>
+                  {isPending ? 'Saving...' : 'Save'}
+                </ActionButton>
+              )}
               <ActionButton
                 variant="secondary"
                 disabled={isPending}
@@ -174,9 +184,17 @@ export function TaskInfo({
         </ActionButton>
         <form action={deleteTaskFormAction}>
           <input type="hidden" name="taskId" value={task.id} />
-          <ActionButton type="submit" variant="danger" disabled={isPendingDeletion}>
-            Delete
-          </ActionButton>
+          {user?.role === 'demo' ? (
+            <UserRoleAlert>
+              <ActionButton variant="danger" disabled={isPendingDeletion}>
+                Delete
+              </ActionButton>
+            </UserRoleAlert>
+          ) : (
+            <ActionButton variant="danger" disabled={isPendingDeletion}>
+              Delete
+            </ActionButton>
+          )}
         </form>
       </div>
     </div>

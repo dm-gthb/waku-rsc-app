@@ -1,12 +1,15 @@
 'use client';
 
 import { useActionState } from 'react';
-import { createProject } from '../actions/create-project';
 import { useRouter } from 'waku';
+import { createProject } from '../actions/create-project';
 import { FormErrorList } from './form-errors-list';
+import { UserRoleAlert } from './user-role-alert';
+import { useUser } from '../context/user';
 
 export function CreateProjectForm() {
   const router = useRouter();
+  const { user } = useUser();
   const [formState, formAction, isPending] = useActionState(
     async (_prevState: unknown, formData: FormData) => {
       const result = await createProject(_prevState, formData);
@@ -82,12 +85,20 @@ export function CreateProjectForm() {
             />
             <FormErrorList errors={formState.fieldErrors?.targetDate ?? null} />
           </div>
-          <button
-            type="submit"
-            className="w-full bg-gray-500 hover:bg-gray-600 cursor-pointer text-white font-bold py-2 px-4 rounded"
-          >
-            {isPending ? 'Creating...' : 'Create Project'}
-          </button>
+          {user?.role === 'demo' ? (
+            <UserRoleAlert>
+              <button className="w-full bg-gray-500 hover:bg-gray-600 cursor-pointer text-white font-bold py-2 px-4 rounded">
+                {isPending ? 'Creating...' : 'Create Project'}
+              </button>
+            </UserRoleAlert>
+          ) : (
+            <button
+              type="submit"
+              className="w-full bg-gray-500 hover:bg-gray-600 cursor-pointer text-white font-bold py-2 px-4 rounded"
+            >
+              {isPending ? 'Creating...' : 'Create Project'}
+            </button>
+          )}
         </fieldset>
         <FormErrorList
           errors={formState.errorMessage ? [formState.errorMessage] : null}

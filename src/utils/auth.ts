@@ -1,10 +1,11 @@
 import { getSignedCookie, setSignedCookie, deleteCookie } from 'hono/cookie';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
+import { unstable_redirect } from 'waku/router/server';
 import { getHonoContext } from '../lib/hono';
 import { getDB } from '../db';
 import { passwords, users } from '../db/schema';
-import { unstable_redirect } from 'waku/router/server';
+import { User } from '../db/types';
 
 export async function getCurrentUser() {
   console.log('Getting current user');
@@ -163,5 +164,12 @@ export async function requireAnonymous() {
   const user = await getCurrentUser();
   if (user) {
     throw unstable_redirect('/');
+  }
+}
+
+export function restrictDemoUser(user: User) {
+  if (user.role === 'demo') {
+    console.log('Demo user restriction triggered');
+    throw new Error('Demo users are not allowed to perform this action.');
   }
 }

@@ -5,7 +5,7 @@ import z from 'zod';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
-import { requireUser } from '../utils/auth';
+import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const editTaskSchema = z.object({
   taskId: z.string().nonempty('Task ID is required.'),
@@ -42,7 +42,9 @@ export async function editTask(_prevState: unknown, formData: FormData) {
   const { taskId, title, description } = data;
 
   try {
-    await requireUser();
+    const user = await requireUser();
+    restrictDemoUser(user);
+
     const updateData: Record<string, any> = { title, description };
     await db.update(tasks).set(updateData).where(eq(tasks.id, taskId));
 

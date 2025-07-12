@@ -14,10 +14,11 @@
     "db:seed": "wrangler d1 execute --local --file=./src/db/seed.sql",
     "db:drop": "rm -rf ./.wrangler",
     "db:migrate-production": "wrangler d1 migrations apply --remote",
-    "db:seed-production": "wrangler d1 execute --remote --file=./drizzle/seed--production.sql"
+    "db:seed-production": "wrangler d1 execute --remote --file=./src/db/seed--production.sql"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@radix-ui/react-dialog": "^1.1.14",
     "bcryptjs": "^3.0.2",
     "drizzle-orm": "^0.44.2",
     "react": "19.1.0",

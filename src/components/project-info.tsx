@@ -5,6 +5,8 @@ import { ProjectWithTasks } from '../db/types';
 import { editProject } from '../actions/edit-project';
 import ActionButton from './action-button';
 import { FormErrorList } from './form-errors-list';
+import { UserRoleAlert } from './user-role-alert';
+import { useUser } from '../context/user';
 
 export function ProjectInfo({
   project: initProject,
@@ -17,6 +19,7 @@ export function ProjectInfo({
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [project, setProject] = useState(initProject);
+  const { user } = useUser();
   const [formState, formAction, isEditPending] = useActionState(
     async (prevState: unknown, formData: FormData) => {
       const result = await editProject(prevState, formData);
@@ -60,7 +63,7 @@ export function ProjectInfo({
                 required
               />
               <textarea
-                rows={2}
+                rows={4}
                 className="p-2 mb-2"
                 name="description"
                 placeholder="Project description"
@@ -99,9 +102,17 @@ export function ProjectInfo({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 items-start">
-              <ActionButton disabled={isEditPending}>
-                {isEditPending ? 'Saving...' : 'Save'}
-              </ActionButton>
+              {user?.role === 'demo' ? (
+                <UserRoleAlert>
+                  <ActionButton disabled={isEditPending}>
+                    {isEditPending ? 'Saving...' : 'Save'}
+                  </ActionButton>
+                </UserRoleAlert>
+              ) : (
+                <ActionButton disabled={isEditPending}>
+                  {isEditPending ? 'Saving...' : 'Save'}
+                </ActionButton>
+              )}
               <ActionButton
                 variant="secondary"
                 disabled={isEditPending}
@@ -126,9 +137,17 @@ export function ProjectInfo({
         <ActionButton onClick={() => setIsEditMode(true)}>Edit</ActionButton>
         <form action={deleteProjectFormAction}>
           <input type="hidden" name="projectId" value={project.id} />
-          <ActionButton type="submit" variant="danger" disabled={isPendingDeletion}>
-            Delete
-          </ActionButton>
+          {user?.role === 'demo' ? (
+            <UserRoleAlert>
+              <ActionButton variant="danger" disabled={isPendingDeletion}>
+                Delete
+              </ActionButton>
+            </UserRoleAlert>
+          ) : (
+            <ActionButton variant="danger" disabled={isPendingDeletion}>
+              Delete
+            </ActionButton>
+          )}
         </form>
       </div>
     </div>

@@ -4,7 +4,7 @@ import z from 'zod';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
 import { delay } from '../utils';
-import { requireUser } from '../utils/auth';
+import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const projectSchema = z.object({
   title: z.string().min(1).max(100),
@@ -41,6 +41,8 @@ export async function createProject(_prevState: unknown, formData: FormData) {
 
   try {
     const user = await requireUser();
+    restrictDemoUser(user);
+
     const [newProject] = await db
       .insert(projects)
       .values({

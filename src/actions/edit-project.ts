@@ -5,7 +5,7 @@ import z from 'zod';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
 import { delay } from '../utils';
-import { requireUser } from '../utils/auth';
+import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const editProjectSchema = z.object({
   projectId: z.string().nonempty('Project ID is required.'),
@@ -49,7 +49,9 @@ export async function editProject(_prevState: unknown, formData: FormData) {
   await delay(2000);
 
   try {
-    await requireUser();
+    const user = await requireUser();
+    restrictDemoUser(user);
+
     await db
       .update(projects)
       .set({

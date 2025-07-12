@@ -3,7 +3,7 @@ import z from 'zod';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
-import { requireUser } from '../utils/auth';
+import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const taskSchema = z.object({
   projectId: z.string().nonempty(),
@@ -42,7 +42,9 @@ export async function createTask(_prevState: unknown, formData: FormData) {
 
   try {
     const db = getDB();
-    await requireUser();
+    const user = await requireUser();
+    restrictDemoUser(user);
+
     const [newTask] = await db
       .insert(tasks)
       .values({

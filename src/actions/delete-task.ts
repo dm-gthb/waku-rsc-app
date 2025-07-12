@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
 import { delay } from '../utils';
-import { requireUser } from '../utils/auth';
+import { requireUser, restrictDemoUser } from '../utils/auth';
 import z from 'zod';
 
 const deleteTaskSchema = z.object({
@@ -26,10 +26,7 @@ export async function deleteTask(formData: FormData) {
 
   try {
     const user = await requireUser();
-
-    if (!user) {
-      return { error: 'User not authenticated.' };
-    }
+    restrictDemoUser(user);
 
     await db.delete(tasks).where(eq(tasks.id, data.taskId));
     return {

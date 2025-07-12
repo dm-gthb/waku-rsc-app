@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
 import { delay } from '../utils';
-import { requireUser } from '../utils/auth';
+import { requireUser, restrictDemoUser } from '../utils/auth';
 import z from 'zod';
 
 const deleteProjectSchema = z.object({
@@ -27,7 +27,9 @@ export async function deleteProject(formData: FormData) {
   await delay(3000);
 
   try {
-    await requireUser();
+    const user = await requireUser();
+    restrictDemoUser(user);
+
     await db.delete(projects).where(eq(projects.id, projectId));
     return {
       success: true,

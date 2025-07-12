@@ -4,6 +4,8 @@ import { Link } from 'waku';
 import { LinkIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Task } from '../db/types';
 import { CompletionTaskButton } from './completion-task-button';
+import { UserRoleAlert } from './user-role-alert';
+import { useUser } from '../context/user';
 
 type TaskWithSubtasks = Task & { subtasks?: Task[] };
 
@@ -53,6 +55,7 @@ function TaskListItem({
   formAction: (formData: FormData) => void;
   deleteFormAction?: (formData: FormData) => void;
 }) {
+  const { user } = useUser();
   const isSubtask = Boolean(task.parentTaskId);
   return (
     <div className="flex items-start gap-2 w-full group py-3">
@@ -82,13 +85,19 @@ function TaskListItem({
       </Link>
       <form action={deleteFormAction}>
         <input type="hidden" name="taskId" value={task.id} />
-        <button
-          type="submit"
-          className="hidden group-hover:flex items-center gap-1 cursor-pointer hover:border-transparent hover:text-red-500 p-1 -my-1"
-        >
-          <TrashIcon width={18} height={18} />
-          <span className="sr-only">Delete task and its subtasks</span>
-        </button>
+        {user?.role === 'demo' ? (
+          <UserRoleAlert>
+            <button className="relative z-10 hidden group-hover:flex items-center gap-1 cursor-pointer hover:border-transparent hover:text-red-500 p-1 -my-1">
+              <TrashIcon width={18} height={18} />
+              <span className="sr-only">Delete task and its subtasks</span>
+            </button>
+          </UserRoleAlert>
+        ) : (
+          <button className="relative z-10 hidden group-hover:flex items-center gap-1 cursor-pointer hover:border-transparent hover:text-red-500 p-1 -my-1">
+            <TrashIcon width={18} height={18} />
+            <span className="sr-only">Delete task and its subtasks</span>
+          </button>
+        )}
       </form>
     </div>
   );

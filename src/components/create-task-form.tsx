@@ -5,6 +5,8 @@ import { useActionState, useState } from 'react';
 import { FormErrorList } from './form-errors-list';
 import ActionButton from './action-button';
 import { createTask } from '../actions/create-task';
+import { UserRoleAlert } from './user-role-alert';
+import { useUser } from '../context/user';
 
 export function CreateTaskForm({
   projectId,
@@ -16,6 +18,7 @@ export function CreateTaskForm({
   parentTaskId?: string;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
+  const { user } = useUser();
   const [formState, formAction, isPending] = useActionState(
     async (_prevState: unknown, formData: FormData) => {
       const result = await createTask(_prevState, formData);
@@ -58,9 +61,17 @@ export function CreateTaskForm({
           <div className="flex justify-between">
             <FormErrorList errors={formState.errors} />
             <div className="flex gap-2 items-start ml-auto">
-              <ActionButton disabled={isPending}>
-                {isPending ? 'Saving...' : 'Save'}
-              </ActionButton>
+              {user?.role === 'demo' ? (
+                <UserRoleAlert>
+                  <ActionButton disabled={isPending}>
+                    {isPending ? 'Saving...' : 'Save'}
+                  </ActionButton>
+                </UserRoleAlert>
+              ) : (
+                <ActionButton disabled={isPending}>
+                  {isPending ? 'Saving...' : 'Save'}
+                </ActionButton>
+              )}
               <ActionButton
                 variant="secondary"
                 disabled={isPending}

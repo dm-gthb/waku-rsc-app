@@ -9,3 +9,4 @@ dist
 .wrangler
 .dev.vars
 local
+/src/db/seed--production.sql

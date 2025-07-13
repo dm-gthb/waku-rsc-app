@@ -5,7 +5,7 @@
   "compatibility_date": "2024-11-11",
   // nodejs_als is required for Waku server-side request context
   // It can be removed if only building static pages
-  "compatibility_flags": ["nodejs_als"],
+  "compatibility_flags": ["nodejs_als", "nodejs_compat"],
   // https://developers.cloudflare.com/workers/static-assets/binding/
   "assets": {
     "binding": "ASSETS",
@@ -16,8 +16,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "no-name-yet",
-      "database_id": "no-id-yet",
+      "database_name": "waku-rsc-app",
+      "database_id": "83739c2f-4990-4d52-b5cf-735337f274ea",
       "migrations_dir": "drizzle/migrations",
     },
   ],

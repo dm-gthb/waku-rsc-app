@@ -6,7 +6,7 @@ export default {
   dialect: 'sqlite',
   driver: 'd1-http',
   dbCredentials: {
-    databaseId: '',
+    databaseId: '83739c2f-4990-4d52-b5cf-735337f274ea',
     accountId: process.env.CLOUDFLARE_ACCOUNT_ID!,
     token: process.env.CLOUDFLARE_D1_TOKEN!,
   },

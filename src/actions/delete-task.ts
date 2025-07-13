@@ -11,9 +11,9 @@ const deleteTaskSchema = z.object({
   taskId: z.string().nonempty('Task ID is required.'),
 });
 
-export async function deleteTask(formData: FormData) {
+export async function deleteTask(taskId: string) {
   const { success, data } = deleteTaskSchema.safeParse({
-    taskId: formData.get('taskId'),
+    taskId,
   });
 
   if (!success) {

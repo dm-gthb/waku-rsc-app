@@ -19,8 +19,11 @@ export function ProjectTaskList({
     (_initTasks, newTasks: Array<TaskWithSubtasks>) => newTasks,
   );
 
-  async function manageTaskCompletion(formData: FormData) {
-    const { success, updatedTasks, error } = await updateTaskCompletion(formData);
+  async function manageTaskCompletion(taskData: {
+    taskId: string;
+    isCompleting: boolean;
+  }) {
+    const { success, updatedTasks, error } = await updateTaskCompletion(taskData);
     startTransition(() => {
       if (success && updatedTasks && updatedTasks.length > 0) {
         setTasks((currentTasks) => {
@@ -49,10 +52,14 @@ export function ProjectTaskList({
     });
   }
 
-  function formAction(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-    const isCompleting = formData.get('isToCompleteIntension') === 'true';
-
+  function handleTaskCompleteStatusChange({
+    taskId,
+    isCompleted,
+  }: {
+    taskId: string;
+    isCompleted: boolean;
+  }) {
+    const isCompleting = !isCompleted;
     const updateTasksOptimistically = (tasks: Array<TaskWithSubtasks>) => {
       let result = tasks.map((task): TaskWithSubtasks => {
         if (task.id === taskId) {
@@ -101,16 +108,13 @@ export function ProjectTaskList({
       return result;
     };
 
-    setOptimisticTasks(updateTasksOptimistically(optimisticTasks));
-
     startTransition(async () => {
-      await manageTaskCompletion(formData);
+      setOptimisticTasks(updateTasksOptimistically(optimisticTasks));
+      await manageTaskCompletion({ taskId, isCompleting });
     });
   }
 
-  function deleteTaskFormAction(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-
+  function handleTaskDelete(taskId: string) {
     const deleteTasksOptimistically = (tasks: Array<TaskWithSubtasks>) => {
       const deleteTaskRecursively = (taskList: Array<TaskWithSubtasks>) => {
         return taskList.reduce((acc: Array<TaskWithSubtasks>, task) => {
@@ -134,16 +138,14 @@ export function ProjectTaskList({
       return deleteTaskRecursively(tasks);
     };
 
-    setOptimisticTasks(deleteTasksOptimistically(optimisticTasks));
-
     startTransition(async () => {
-      await manageTaskDeletion(formData);
+      setOptimisticTasks(deleteTasksOptimistically(optimisticTasks));
+      await manageTaskDeletion(taskId);
     });
   }
 
-  async function manageTaskDeletion(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-    const result = await deleteTask(formData);
+  async function manageTaskDeletion(taskId: string) {
+    const result = await deleteTask(taskId);
 
     startTransition(() => {
       if (result.success) {
@@ -177,8 +179,8 @@ export function ProjectTaskList({
   return (
     <TaskList
       tasks={optimisticTasks}
-      formAction={formAction}
-      deleteFormAction={deleteTaskFormAction}
+      onTaskCompleteStatusChange={handleTaskCompleteStatusChange}
+      onTaskDelete={handleTaskDelete}
     />
   );
 }

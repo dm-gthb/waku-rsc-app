@@ -16,8 +16,11 @@ export function Subtasks({
   onSubtaskUpdate: Dispatch<SetStateAction<TaskWithSubtasks>>;
   onOptimisticUpdate: (action: TaskWithSubtasks) => void;
 }) {
-  async function manageTaskCompletion(formData: FormData) {
-    const { success, updatedTasks } = await updateTaskCompletion(formData);
+  async function manageTaskCompletion(taskData: {
+    taskId: string;
+    isCompleting: boolean;
+  }) {
+    const { success, updatedTasks } = await updateTaskCompletion(taskData);
     if (success && updatedTasks && updatedTasks.length > 0) {
       const updatedSubtasks = task.subtasks.map((subtask) => {
         const updatedSubtask = updatedTasks.find((t) => t.id === subtask.id);
@@ -46,15 +49,19 @@ export function Subtasks({
     }
   }
 
-  function taskCompletionFormAction(formData: FormData) {
+  function handleTaskCompleteStatusChange({
+    taskId,
+    isCompleted,
+  }: {
+    taskId: string;
+    isCompleted: boolean;
+  }) {
+    const isCompleting = !isCompleted;
     const updatedSubtasks = task.subtasks.map((subtask) => {
-      if (subtask.id === formData.get('taskId')) {
+      if (subtask.id === taskId) {
         return {
           ...subtask,
-          completedAt:
-            formData.get('isToCompleteIntension') === 'true'
-              ? new Date().toISOString()
-              : null,
+          completedAt: isCompleting ? new Date().toISOString() : null,
         };
       }
       return subtask;
@@ -64,35 +71,30 @@ export function Subtasks({
       ({ completedAt }) => completedAt !== null,
     );
 
-    onOptimisticUpdate({
-      ...task,
-      completedAt: allSubtasksCompleted
-        ? updatedSubtasks[0]?.completedAt || new Date().toISOString()
-        : null,
-      subtasks: updatedSubtasks,
-    });
-
     startTransition(async () => {
-      await manageTaskCompletion(formData);
+      onOptimisticUpdate({
+        ...task,
+        completedAt: allSubtasksCompleted
+          ? updatedSubtasks[0]?.completedAt || new Date().toISOString()
+          : null,
+        subtasks: updatedSubtasks,
+      });
+      await manageTaskCompletion({ taskId, isCompleting });
     });
   }
 
-  function taskDeletionFormAction(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-
-    onOptimisticUpdate({
-      ...task,
-      subtasks: task.subtasks.filter((subtask) => subtask.id !== taskId),
-    });
-
+  function handleTaskDelete(taskId: string) {
     startTransition(async () => {
-      await manageTaskDeletion(formData);
+      onOptimisticUpdate({
+        ...task,
+        subtasks: task.subtasks.filter((subtask) => subtask.id !== taskId),
+      });
+      await manageTaskDeletion(taskId);
     });
   }
 
-  async function manageTaskDeletion(formData: FormData) {
-    const taskId = formData.get('taskId') as string;
-    const result = await deleteTask(formData);
+  async function manageTaskDeletion(taskId: string) {
+    const result = await deleteTask(taskId);
     if (result.success) {
       startTransition(() => {
         onSubtaskUpdate((prev) => ({
@@ -114,8 +116,8 @@ export function Subtasks({
           <div className="mb-6">
             <TaskList
               tasks={task.subtasks}
-              formAction={taskCompletionFormAction}
-              deleteFormAction={taskDeletionFormAction}
+              onTaskCompleteStatusChange={handleTaskCompleteStatusChange}
+              onTaskDelete={handleTaskDelete}
             />
           </div>
         </>

@@ -11,11 +11,9 @@ const deleteProjectSchema = z.object({
   projectId: z.string().nonempty('Project ID is required.'),
 });
 
-export async function deleteProject(formData: FormData) {
-  const projectId = formData.get('projectId') as string;
-
-  const { success } = deleteProjectSchema.safeParse({
-    projectId: formData.get('projectId'),
+export async function deleteProject(projectId: string) {
+  const { success, data } = deleteProjectSchema.safeParse({
+    projectId,
   });
 
   if (!success) {
@@ -30,16 +28,16 @@ export async function deleteProject(formData: FormData) {
     const user = await requireUser();
     restrictDemoUser(user);
 
-    await db.delete(projects).where(eq(projects.id, projectId));
+    await db.delete(projects).where(eq(projects.id, data.projectId));
     return {
       success: true,
       error: null,
     };
   } catch (error) {
-    console.error('Failed to delete task:', error);
+    console.error('Failed to delete project:', error);
     return {
       success: false,
-      error: 'Failed to delete task and its subtasks.',
+      error: 'Failed to delete project.',
     };
   }
 }

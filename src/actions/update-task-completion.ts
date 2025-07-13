@@ -9,14 +9,14 @@ import { requireUser } from '../utils/auth';
 
 const updateTaskCompletionSchema = z.object({
   taskId: z.string().nonempty('Task ID is required.'),
-  isToCompleteIntension: z.coerce.boolean(),
+  isCompleting: z.boolean(),
 });
 
-export async function updateTaskCompletion(formData: FormData) {
-  const { success, data } = updateTaskCompletionSchema.safeParse({
-    taskId: formData.get('taskId'),
-    isToCompleteIntension: formData.get('isToCompleteIntension'),
-  });
+export async function updateTaskCompletion(taskCompletionData: {
+  taskId: string;
+  isCompleting: boolean;
+}) {
+  const { success, data } = updateTaskCompletionSchema.safeParse(taskCompletionData);
 
   if (!success) {
     return {
@@ -26,8 +26,7 @@ export async function updateTaskCompletion(formData: FormData) {
     };
   }
 
-  const { taskId, isToCompleteIntension } = data;
-  const isCompleting = isToCompleteIntension === true;
+  const { taskId, isCompleting } = data;
 
   const db = getDB();
   let originalCompletedAt: string | null = null;

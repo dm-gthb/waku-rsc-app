@@ -10,12 +10,12 @@ import { useIsDemoMode } from '../context/demo-mode';
 
 export function ProjectInfo({
   project: initProject,
-  deleteProjectFormAction,
-  isPendingDeletion,
+  onProjectDelete,
+  isDeletePending,
 }: {
   project: ProjectWithTasks;
-  deleteProjectFormAction: (formData: FormData) => void;
-  isPendingDeletion?: boolean;
+  onProjectDelete: () => void;
+  isDeletePending?: boolean;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [project, setProject] = useState(initProject);
@@ -135,20 +135,21 @@ export function ProjectInfo({
       <Info project={project} />
       <div className="flex flex-col sm:flex-row gap-2 items-start">
         <ActionButton onClick={() => setIsEditMode(true)}>Edit</ActionButton>
-        <form action={deleteProjectFormAction}>
-          <input type="hidden" name="projectId" value={project.id} />
-          {isDemo ? (
-            <DemoAlert>
-              <ActionButton variant="danger" disabled={isPendingDeletion}>
-                Delete
-              </ActionButton>
-            </DemoAlert>
-          ) : (
-            <ActionButton variant="danger" disabled={isPendingDeletion}>
+        {isDemo ? (
+          <DemoAlert>
+            <ActionButton variant="danger" disabled={isDeletePending}>
               Delete
             </ActionButton>
-          )}
-        </form>
+          </DemoAlert>
+        ) : (
+          <ActionButton
+            variant="danger"
+            disabled={isDeletePending}
+            onClick={onProjectDelete}
+          >
+            Delete
+          </ActionButton>
+        )}
       </div>
     </div>
   );

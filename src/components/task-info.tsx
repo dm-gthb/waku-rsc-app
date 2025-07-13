@@ -19,19 +19,26 @@ export function TaskInfo({
   task,
   onInfoUpdate,
   onOptimisticUpdate,
-  deleteTaskFormAction,
-  isPendingDeletion,
+  onTaskDelete,
+  isDeletePending,
 }: {
   task: TaskWithSubtasks;
   onInfoUpdate: Dispatch<SetStateAction<TaskWithSubtasks>>;
   onOptimisticUpdate: (action: TaskWithSubtasks) => void;
-  deleteTaskFormAction: (formData: FormData) => void;
-  isPendingDeletion?: boolean;
+  onTaskDelete: () => void;
+  isDeletePending?: boolean;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const { isDemo } = useIsDemoMode();
-  function completionFormAction(formData: FormData) {
-    const isCompleting = formData.get('isToCompleteIntension') === 'true';
+
+  function handleTaskCompleteStatusChange({
+    taskId,
+    isCompleted,
+  }: {
+    taskId: string;
+    isCompleted: boolean;
+  }) {
+    const isCompleting = !isCompleted;
 
     const updateTaskWithSubtasks = (taskToUpdate: TaskWithSubtasks): TaskWithSubtasks => {
       const updatedTask = {
@@ -52,26 +59,25 @@ export function TaskInfo({
       return updatedTask;
     };
 
-    onOptimisticUpdate(updateTaskWithSubtasks(task));
-
     startTransition(async () => {
-      await manageTaskCompletion(formData);
+      onOptimisticUpdate(updateTaskWithSubtasks(task));
+      await manageTaskCompletion({ taskId, isCompleting });
     });
   }
 
-  async function manageTaskCompletion(formData: FormData) {
-    const result = await updateTaskCompletion(formData);
-
-    if (result.success) {
+  async function manageTaskCompletion(taskData: {
+    taskId: string;
+    isCompleting: boolean;
+  }) {
+    const { success, updatedTasks } = await updateTaskCompletion(taskData);
+    if (success) {
       startTransition(() => {
         onInfoUpdate((prev) => {
-          if (!result.updatedTasks || result.updatedTasks.length === 0) {
+          if (!updatedTasks || updatedTasks.length === 0) {
             return prev;
           }
 
-          const updatedTasksMap = new Map(
-            result.updatedTasks.map((task) => [task.id, task]),
-          );
+          const updatedTasksMap = new Map(updatedTasks.map((task) => [task.id, task]));
 
           const mainTask = updatedTasksMap.get(task.id);
           if (!mainTask) {
@@ -81,7 +87,7 @@ export function TaskInfo({
             ...prev,
             completedAt: mainTask.completedAt,
             subtasks: prev.subtasks.map((subtask) => {
-              const updatedSubtask = result.updatedTasks.find((t) => t.id === subtask.id);
+              const updatedSubtask = updatedTasks.find((t) => t.id === subtask.id);
               if (updatedSubtask) {
                 return {
                   ...subtask,
@@ -171,7 +177,15 @@ export function TaskInfo({
     <div className="flex justify-between gap-4">
       <div>
         <div className="flex items-center mb-4 gap-2">
-          <CompletionTaskButton task={task} formAction={completionFormAction} />
+          <CompletionTaskButton
+            isCompletedTask={Boolean(task.completedAt)}
+            onClick={() =>
+              handleTaskCompleteStatusChange({
+                taskId: task.id,
+                isCompleted: Boolean(task.completedAt),
+              })
+            }
+          />
           <h1 className={`${task.completedAt ? 'line-through' : ''} text-2xl font-bold`}>
             {task.title}
           </h1>
@@ -179,23 +193,24 @@ export function TaskInfo({
         {task.description && <p className="mb-8">{task.description}</p>}
       </div>
       <div className="flex gap-2 items-start">
-        <ActionButton onClick={() => setIsEditMode(true)} disabled={isPendingDeletion}>
+        <ActionButton onClick={() => setIsEditMode(true)} disabled={isDeletePending}>
           Edit
         </ActionButton>
-        <form action={deleteTaskFormAction}>
-          <input type="hidden" name="taskId" value={task.id} />
-          {isDemo ? (
-            <DemoAlert>
-              <ActionButton variant="danger" disabled={isPendingDeletion}>
-                Delete
-              </ActionButton>
-            </DemoAlert>
-          ) : (
-            <ActionButton variant="danger" disabled={isPendingDeletion}>
+        {isDemo ? (
+          <DemoAlert>
+            <ActionButton variant="danger" disabled={isDeletePending}>
               Delete
             </ActionButton>
-          )}
-        </form>
+          </DemoAlert>
+        ) : (
+          <ActionButton
+            variant="danger"
+            disabled={isDeletePending}
+            onClick={onTaskDelete}
+          >
+            Delete
+          </ActionButton>
+        )}
       </div>
     </div>
   );

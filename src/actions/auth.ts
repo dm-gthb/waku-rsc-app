@@ -120,6 +120,7 @@ export async function login(_prev: unknown, formData: FormData) {
     const userPassword = await getPasswordByUserId(user.id);
     if (!userPassword) {
       return {
+        ...defaultAuthResponse,
         errorMessage: 'Invalid email or password',
       };
     }

@@ -1,17 +1,20 @@
 'use client';
 
-import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
-import { logout } from '../actions/auth';
 import { useTransition } from 'react';
 import { useRouter } from 'waku';
+import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/24/outline';
+import { logout } from '../actions/auth';
+import { useIsDemoMode } from '../context/demo-mode';
 
 export function LogoutButton() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const { setIsDemo } = useIsDemoMode();
 
   const handleLogout = () => {
     startTransition(async () => {
       await logout();
+      setIsDemo(false);
       router.push('/login');
     });
   };

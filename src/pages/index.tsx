@@ -1,17 +1,11 @@
 import { getDB } from '../db';
 import { delay } from '../utils';
 import { ProjectList } from '../components/project-list';
-import { getCurrentUser } from '../utils/auth';
-import { unstable_redirect } from 'waku/router/server';
+import { requireUser } from '../utils/auth';
 import { LogoutButton } from '../components/logout-button';
 
 export default async function HomePage() {
-  const user = await getCurrentUser();
-  console.log('Current user:', user);
-
-  if (!user) {
-    unstable_redirect('/login');
-  }
+  const user = await requireUser();
 
   const db = getDB();
   const projects = await db.query.projects.findMany({

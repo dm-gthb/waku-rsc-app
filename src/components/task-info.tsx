@@ -12,8 +12,8 @@ import { updateTaskCompletion } from '../actions/update-task-completion';
 import { editTask } from '../actions/edit-task';
 import { CompletionTaskButton } from './completion-task-button';
 import ActionButton from './action-button';
-import { UserRoleAlert } from './user-role-alert';
-import { useUser } from '../context/user';
+import { DemoAlert } from './demo-alert';
+import { useIsDemoMode } from '../context/demo-mode';
 
 export function TaskInfo({
   task,
@@ -29,7 +29,7 @@ export function TaskInfo({
   isPendingDeletion?: boolean;
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
-  const { user } = useUser();
+  const { isDemo } = useIsDemoMode();
   function completionFormAction(formData: FormData) {
     const isCompleting = formData.get('isToCompleteIntension') === 'true';
 
@@ -141,12 +141,12 @@ export function TaskInfo({
             </div>
 
             <div className="flex gap-2 items-start">
-              {user?.role === 'demo' ? (
-                <UserRoleAlert>
+              {isDemo ? (
+                <DemoAlert>
                   <ActionButton disabled={isPending}>
                     {isPending ? 'Saving...' : 'Save'}
                   </ActionButton>
-                </UserRoleAlert>
+                </DemoAlert>
               ) : (
                 <ActionButton disabled={isPending}>
                   {isPending ? 'Saving...' : 'Save'}
@@ -184,12 +184,12 @@ export function TaskInfo({
         </ActionButton>
         <form action={deleteTaskFormAction}>
           <input type="hidden" name="taskId" value={task.id} />
-          {user?.role === 'demo' ? (
-            <UserRoleAlert>
+          {isDemo ? (
+            <DemoAlert>
               <ActionButton variant="danger" disabled={isPendingDeletion}>
                 Delete
               </ActionButton>
-            </UserRoleAlert>
+            </DemoAlert>
           ) : (
             <ActionButton variant="danger" disabled={isPendingDeletion}>
               Delete

@@ -58,7 +58,7 @@ export function ProjectList({ projects }: { projects: Array<ProjectWithTasks> })
         </p>
       )}
       <Link
-        to="/create-project"
+        to="/project/create"
         className="inline-block cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
       >
         + Add Project

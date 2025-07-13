@@ -5,6 +5,7 @@ import { Link, useRouter } from 'waku';
 import { FormErrorList } from '../components/form-errors-list';
 import { Spinner } from '../components/spinner';
 import { login } from '../actions/auth';
+import { useIsDemoMode } from '../context/demo-mode';
 
 const classNames = {
   input:
@@ -14,10 +15,12 @@ const classNames = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setIsDemo } = useIsDemoMode();
   const [formState, formAction, isPending] = useActionState(
     async (prev: unknown, formData: FormData) => {
       const result = await login(prev, formData);
       if (result.success) {
+        setIsDemo(result.user?.role === 'demo');
         router.push('/');
       }
 
@@ -27,6 +30,7 @@ export default function LoginPage() {
       success: false,
       errorMessage: '',
       fieldErrors: null,
+      user: null,
     },
   );
 
@@ -42,10 +46,8 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col items-center justify-center px-8 py-4">
-      <h1 className="text-2xl font-bold mb-2">Log in to your account</h1>
-      <div className="min-h-6 mb-4">
-        <FormErrorList errors={errorMessage ? [errorMessage] : null} />
-      </div>
+      <h1 className="text-2xl font-bold mb-6">Log in to your account</h1>
+      <DemoDataInfo />
       <div className="mb-4 w-full sm:w-96">
         <div>
           <form action={formAction}>
@@ -81,6 +83,9 @@ export default function LoginPage() {
                 </div>
               </div>
             </fieldset>
+            <div className="min-h-6 mb-0 text-center">
+              <FormErrorList errors={errorMessage ? [errorMessage] : null} />
+            </div>
             <button
               type="submit"
               disabled={isPending}
@@ -108,6 +113,20 @@ export default function LoginPage() {
           Sign up
         </Link>
       </div>
+    </div>
+  );
+}
+
+function DemoDataInfo() {
+  return (
+    <div className="mb-4 p-4 bg-gray-100 border border-gray-200 rounded">
+      <p className="text-center mb-1">Demo account with sample data:</p>
+      <p>
+        <span className="font-semibold">Email:</span> <code>demo@example.com</code>
+      </p>
+      <p>
+        <span className="font-semibold">Password:</span> <code>demo123</code>
+      </p>
     </div>
   );
 }

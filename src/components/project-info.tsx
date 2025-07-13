@@ -5,8 +5,8 @@ import { ProjectWithTasks } from '../db/types';
 import { editProject } from '../actions/edit-project';
 import ActionButton from './action-button';
 import { FormErrorList } from './form-errors-list';
-import { UserRoleAlert } from './user-role-alert';
-import { useUser } from '../context/user';
+import { DemoAlert } from './demo-alert';
+import { useIsDemoMode } from '../context/demo-mode';
 
 export function ProjectInfo({
   project: initProject,
@@ -19,7 +19,7 @@ export function ProjectInfo({
 }) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [project, setProject] = useState(initProject);
-  const { user } = useUser();
+  const { isDemo } = useIsDemoMode();
   const [formState, formAction, isEditPending] = useActionState(
     async (prevState: unknown, formData: FormData) => {
       const result = await editProject(prevState, formData);
@@ -102,12 +102,12 @@ export function ProjectInfo({
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 items-start">
-              {user?.role === 'demo' ? (
-                <UserRoleAlert>
+              {isDemo ? (
+                <DemoAlert>
                   <ActionButton disabled={isEditPending}>
                     {isEditPending ? 'Saving...' : 'Save'}
                   </ActionButton>
-                </UserRoleAlert>
+                </DemoAlert>
               ) : (
                 <ActionButton disabled={isEditPending}>
                   {isEditPending ? 'Saving...' : 'Save'}
@@ -137,12 +137,12 @@ export function ProjectInfo({
         <ActionButton onClick={() => setIsEditMode(true)}>Edit</ActionButton>
         <form action={deleteProjectFormAction}>
           <input type="hidden" name="projectId" value={project.id} />
-          {user?.role === 'demo' ? (
-            <UserRoleAlert>
+          {isDemo ? (
+            <DemoAlert>
               <ActionButton variant="danger" disabled={isPendingDeletion}>
                 Delete
               </ActionButton>
-            </UserRoleAlert>
+            </DemoAlert>
           ) : (
             <ActionButton variant="danger" disabled={isPendingDeletion}>
               Delete

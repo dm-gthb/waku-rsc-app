@@ -4,14 +4,14 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import * as Dialog from '@radix-ui/react-dialog';
 import type { ReactNode } from 'react';
 
-export function UserRoleAlert({ children }: { children: ReactNode }) {
+export function DemoAlert({ children }: { children: ReactNode }) {
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black opacity-50" />
         <Dialog.Content className="fixed top-1/2 left-1/2 w-full max-w-4xl -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-10 shadow-lg focus:outline-none">
-          <Dialog.Title className="sr-only">User Demo Role</Dialog.Title>
+          <Dialog.Title className="sr-only">Demo Alert</Dialog.Title>
           <Dialog.Description className="sr-only">
             User Demo Role permissions info
           </Dialog.Description>

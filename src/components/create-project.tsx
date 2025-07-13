@@ -4,12 +4,12 @@ import { useActionState } from 'react';
 import { useRouter } from 'waku';
 import { createProject } from '../actions/create-project';
 import { FormErrorList } from './form-errors-list';
-import { UserRoleAlert } from './user-role-alert';
-import { useUser } from '../context/user';
+import { DemoAlert } from './demo-alert';
+import { useIsDemoMode } from '../context/demo-mode';
 
 export function CreateProjectForm() {
   const router = useRouter();
-  const { user } = useUser();
+  const { isDemo } = useIsDemoMode();
   const [formState, formAction, isPending] = useActionState(
     async (_prevState: unknown, formData: FormData) => {
       const result = await createProject(_prevState, formData);
@@ -85,12 +85,12 @@ export function CreateProjectForm() {
             />
             <FormErrorList errors={formState.fieldErrors?.targetDate ?? null} />
           </div>
-          {user?.role === 'demo' ? (
-            <UserRoleAlert>
+          {isDemo ? (
+            <DemoAlert>
               <button className="w-full bg-gray-500 hover:bg-gray-600 cursor-pointer text-white font-bold py-2 px-4 rounded">
                 {isPending ? 'Creating...' : 'Create Project'}
               </button>
-            </UserRoleAlert>
+            </DemoAlert>
           ) : (
             <button
               type="submit"

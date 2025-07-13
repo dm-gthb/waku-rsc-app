@@ -8,11 +8,11 @@ import type { PathsForPages, GetConfigResponse } from 'waku/router';
 type Page =
 | { path: '/login'; render: 'dynamic' }
 | { path: '/signup'; render: 'dynamic' }
-| { path: '/create-project'; render: 'dynamic' }
 | { path: '/'; render: 'dynamic' }
 | { path: '/project/[projectId]'; render: 'dynamic' }
 | { path: '/project/[projectId]/tasks/[taskId]'; render: 'dynamic' }
-| { path: '/project/[projectId]/tasks/[taskId]/subtasks/[subtaskId]'; render: 'dynamic' };
+| { path: '/project/[projectId]/tasks/[taskId]/subtasks/[subtaskId]'; render: 'dynamic' }
+| { path: '/project/create'; render: 'dynamic' };
 
 // prettier-ignore
 declare module 'waku/router' {

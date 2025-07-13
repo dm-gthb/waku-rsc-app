@@ -22,6 +22,13 @@ const signUpSchema = z.object({
   name: z.string().nonempty('Name is required'),
 });
 
+const defaultAuthResponse = {
+  success: false,
+  errorMessage: '',
+  fieldErrors: null,
+  user: null,
+};
+
 export async function signUp(_prev: unknown, formData: FormData) {
   try {
     await delay(1000);
@@ -30,13 +37,14 @@ export async function signUp(_prev: unknown, formData: FormData) {
       email: formData.get('email'),
       password: formData.get('password'),
       name: formData.get('name'),
+      user: null,
     };
 
     const { success, data, error } = signUpSchema.safeParse(userData);
 
     if (!success) {
       return {
-        success: false,
+        ...defaultAuthResponse,
         errorMessage: 'Validation failed',
         fieldErrors: z.flattenError(error).fieldErrors,
       };
@@ -47,8 +55,7 @@ export async function signUp(_prev: unknown, formData: FormData) {
 
     if (existingUser) {
       return {
-        success: false,
-        errorMessage: 'Validation failed',
+        ...defaultAuthResponse,
         fieldErrors: {
           email: ['User with this email already exists'],
         },
@@ -59,25 +66,23 @@ export async function signUp(_prev: unknown, formData: FormData) {
 
     if (!user) {
       return {
-        success: false,
+        ...defaultAuthResponse,
         errorMessage: 'Failed to create user',
-        fieldErrors: null,
       };
     }
 
     await createSession(user.id);
 
     return {
+      ...defaultAuthResponse,
       success: true,
-      errorMessage: '',
-      fieldErrors: null,
+      user: { role: user.role },
     };
   } catch (error) {
     console.error('Sign up error:', error);
     return {
-      success: false,
+      ...defaultAuthResponse,
       errorMessage: 'An error occurred while creating your account',
-      fieldErrors: null,
     };
   }
 }
@@ -95,7 +100,7 @@ export async function login(_prev: unknown, formData: FormData) {
     if (!success) {
       console.log(z.flattenError(error).fieldErrors);
       return {
-        success: false,
+        ...defaultAuthResponse,
         errorMessage: 'Validation failed',
         fieldErrors: z.flattenError(error).fieldErrors,
       };
@@ -107,18 +112,15 @@ export async function login(_prev: unknown, formData: FormData) {
 
     if (!user) {
       return {
-        success: false,
+        ...defaultAuthResponse,
         errorMessage: 'Invalid email or password',
-        fieldErrors: null,
       };
     }
 
     const userPassword = await getPasswordByUserId(user.id);
     if (!userPassword) {
       return {
-        success: false,
         errorMessage: 'Invalid email or password',
-        fieldErrors: null,
       };
     }
 
@@ -128,25 +130,22 @@ export async function login(_prev: unknown, formData: FormData) {
     });
     if (!isPasswordValid) {
       return {
-        success: false,
+        ...defaultAuthResponse,
         errorMessage: 'Invalid email or password',
-        fieldErrors: null,
       };
     }
 
     await createSession(user.id);
-
     return {
+      ...defaultAuthResponse,
       success: true,
-      errorMessage: '',
-      fieldErrors: null,
+      user: { role: user.role },
     };
   } catch (error) {
     console.error('Sign in error:', error);
     return {
-      success: false,
+      ...defaultAuthResponse,
       errorMessage: 'An error occurred while signing in',
-      fieldErrors: null,
     };
   }
 }

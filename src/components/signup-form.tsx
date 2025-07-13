@@ -5,6 +5,7 @@ import { Link, useRouter } from 'waku';
 import { FormErrorList } from '../components/form-errors-list';
 import { Spinner } from '../components/spinner';
 import { signUp } from '../actions/auth';
+import { useIsDemoMode } from '../context/demo-mode';
 
 const classNames = {
   input:
@@ -14,10 +15,13 @@ const classNames = {
 
 export default function SignupPage() {
   const router = useRouter();
+  const { setIsDemo } = useIsDemoMode();
   const [formState, formAction, isPending] = useActionState(
     async (prev: unknown, formData: FormData) => {
       const result = await signUp(prev, formData);
       if (result.success) {
+        setIsDemo(result.user?.role === 'demo');
+        console.log('set demo to', result.user?.role === 'demo');
         router.push('/login');
       }
 
@@ -27,6 +31,7 @@ export default function SignupPage() {
       success: false,
       errorMessage: '',
       fieldErrors: null,
+      user: null,
     },
   );
 

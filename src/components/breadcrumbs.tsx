@@ -51,7 +51,9 @@ function useBreadcrumbs() {
   const router = useRouter();
   const pathSegments = router.path.split('/').filter(Boolean);
 
-  const projectId = pathSegments[0] === 'project' ? pathSegments[1] : '';
+  const isProjectRoute = pathSegments[0] === 'project';
+  const projectId = isProjectRoute && pathSegments[1] !== 'create' ? pathSegments[1] : '';
+  const isCreateProject = isProjectRoute && pathSegments[1] === 'create';
   const taskId =
     pathSegments[2] === 'tasks' && pathSegments.length > 3 ? pathSegments[3] : '';
   const subtaskId =
@@ -65,7 +67,13 @@ function useBreadcrumbs() {
     },
   ];
 
-  if (projectId) {
+  if (isCreateProject) {
+    breadcrumbs.push({
+      label: 'New Project',
+      path: '/project/create',
+      isActive: true,
+    });
+  } else if (projectId) {
     breadcrumbs.push({
       label: 'Project Details',
       path: `/project/${projectId}`,

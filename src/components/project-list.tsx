@@ -61,6 +61,7 @@ export function ProjectList({ projects }: { projects: Array<ProjectWithTasks> })
       <Link
         to="/project/create"
         className="inline-block cursor-pointer min-w-24 bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded"
+        unstable_prefetchOnEnter
       >
         + Add Project
       </Link>

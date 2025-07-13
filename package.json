@@ -2,6 +2,7 @@
   "name": "waku-project",
   "version": "0.0.0",
   "type": "module",
+  "author": "Dmitrii Mamonov",
   "private": true,
   "scripts": {
     "dev": "waku dev",

@@ -131,12 +131,12 @@ export function TaskInfo({
             <div className="flex gap-2 items-start">
               {isDemo ? (
                 <DemoAlert>
-                  <ActionButton disabled={isPending}>
+                  <ActionButton disabled={isPending} type="submit">
                     {isPending ? 'Saving...' : 'Save'}
                   </ActionButton>
                 </DemoAlert>
               ) : (
-                <ActionButton disabled={isPending}>
+                <ActionButton disabled={isPending} type="submit">
                   {isPending ? 'Saving...' : 'Save'}
                 </ActionButton>
               )}

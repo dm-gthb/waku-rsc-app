@@ -75,6 +75,7 @@ function TaskListItem({
             : `/project/${task.projectId}/tasks/${task.id}`
         }
         className="flex flex-col gap-1 w-full"
+        unstable_prefetchOnEnter
       >
         <span
           className={`block ${task.completedAt ? 'line-through text-gray-500 hover:text-black' : 'hover:underline'}`}

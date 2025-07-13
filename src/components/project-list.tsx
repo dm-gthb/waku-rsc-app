@@ -24,6 +24,7 @@ export function ProjectList({ projects }: { projects: Array<ProjectWithTasks> })
                 key={id}
                 to={`/project/${id}`}
                 className="grid grid-cols-13 hover:bg-gray-50 border-b border-gray-100"
+                unstable_prefetchOnEnter
               >
                 <Line className="col-span-4">{title}</Line>
                 <Line className={`col-span-3 ${getPriorityColor(priority)} font-medium`}>

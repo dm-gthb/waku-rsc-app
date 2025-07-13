@@ -24,8 +24,8 @@ export function DemoAlert({ children }: { children: ReactNode }) {
               .
             </p>
             <p>
-              Demo user can browse pre-created projects and tasks and change completion
-              task status.
+              As a demo user, you can browse pre-created projects and tasks, and mark
+              tasks as complete or incomplete.
             </p>
             <p className="mb-4">
               <span className="font-bold">

@@ -4,7 +4,6 @@ import { eq } from 'drizzle-orm';
 import z from 'zod';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
-import { delay } from '../utils';
 import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const editTaskSchema = z.object({
@@ -36,9 +35,6 @@ export async function editTask(_prevState: unknown, formData: FormData) {
   }
 
   const db = getDB();
-
-  await delay(3000);
-
   const { taskId, title, description } = data;
 
   try {

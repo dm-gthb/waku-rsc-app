@@ -3,7 +3,6 @@
 import z from 'zod';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
-import { delay } from '../utils';
 import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const projectSchema = z.object({
@@ -37,7 +36,6 @@ export async function createProject(_prevState: unknown, formData: FormData) {
   }
 
   const { title, description, priority, targetDate } = data;
-  await delay(2000);
 
   try {
     const user = await requireUser();

@@ -1,6 +1,5 @@
 import { TaskDetails } from '../../../../../../components/task-details';
 import { getDB } from '../../../../../../db';
-import { delay } from '../../../../../../utils';
 import { requireUser } from '../../../../../../utils/auth';
 
 export default async function SubtaskPage({ subtaskId }: { subtaskId: string }) {
@@ -15,8 +14,6 @@ export default async function SubtaskPage({ subtaskId }: { subtaskId: string }) 
       },
     },
   });
-
-  await delay(250);
 
   if (!task) {
     return <p>Task not found</p>;

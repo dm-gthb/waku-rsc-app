@@ -4,7 +4,6 @@ import { eq } from 'drizzle-orm';
 import z from 'zod';
 import { getDB } from '../db';
 import { projects } from '../db/schema';
-import { delay } from '../utils';
 import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const editProjectSchema = z.object({
@@ -45,8 +44,6 @@ export async function editProject(_prevState: unknown, formData: FormData) {
   const { projectId, title, description, priority, targetDate } = data;
 
   const db = getDB();
-
-  await delay(2000);
 
   try {
     const user = await requireUser();

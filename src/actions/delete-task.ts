@@ -3,7 +3,6 @@
 import { eq } from 'drizzle-orm';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
-import { delay } from '../utils';
 import { requireUser, restrictDemoUser } from '../utils/auth';
 import z from 'zod';
 
@@ -21,8 +20,6 @@ export async function deleteTask(taskId: string) {
   }
 
   const db = getDB();
-
-  await delay(3000);
 
   try {
     const user = await requireUser();

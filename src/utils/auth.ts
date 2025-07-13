@@ -8,7 +8,6 @@ import { passwords, users } from '../db/schema';
 import { User } from '../db/types';
 
 export async function getCurrentUser() {
-  console.log('Getting current user');
   const context = getHonoContext();
 
   if (!context) {
@@ -22,10 +21,7 @@ export async function getCurrentUser() {
       'user_session',
     );
 
-    console.log('User ID from cookie:', userId);
-
     if (!userId) {
-      console.log('No user session found');
       return null;
     }
 
@@ -40,7 +36,6 @@ export async function getCurrentUser() {
       throw await deleteSession();
     }
 
-    console.log('Current user:', user);
     return user;
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -155,7 +150,7 @@ export async function checkIsValidPassword({
 export async function requireUser() {
   const user = await getCurrentUser();
   if (!user) {
-    throw unstable_redirect('/');
+    throw unstable_redirect('/login');
   }
   return user;
 }

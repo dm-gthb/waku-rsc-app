@@ -2,7 +2,6 @@
 import z from 'zod';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
-import { delay } from '../utils';
 import { requireUser, restrictDemoUser } from '../utils/auth';
 
 const taskSchema = z.object({
@@ -37,8 +36,6 @@ export async function createTask(_prevState: unknown, formData: FormData) {
   }
 
   const { projectId, parentTaskId, title, description } = validatedData;
-
-  await delay(2000);
 
   try {
     const db = getDB();

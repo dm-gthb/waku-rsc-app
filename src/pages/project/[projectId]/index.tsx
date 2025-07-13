@@ -1,5 +1,4 @@
 import { getDB } from '../../../db';
-import { delay } from '../../../utils';
 import { ProjectDetails } from '../../../components/project-details';
 import { requireUser } from '../../../utils/auth';
 
@@ -22,8 +21,6 @@ export default async function ProjectDetailsPage({ projectId }: { projectId: str
   if (!project) {
     return <p>Project not found</p>;
   }
-
-  await delay(500);
 
   return <ProjectDetails project={project} />;
 }

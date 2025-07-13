@@ -1,7 +1,6 @@
 'use server';
 
 import z from 'zod';
-import { delay } from '../utils';
 import {
   checkIsValidPassword,
   createSession,
@@ -31,8 +30,6 @@ const defaultAuthResponse = {
 
 export async function signUp(_prev: unknown, formData: FormData) {
   try {
-    await delay(1000);
-
     const userData = {
       email: formData.get('email'),
       password: formData.get('password'),
@@ -89,8 +86,6 @@ export async function signUp(_prev: unknown, formData: FormData) {
 
 export async function login(_prev: unknown, formData: FormData) {
   try {
-    await delay(1000);
-
     const userData = {
       email: formData.get('email'),
       password: formData.get('password'),

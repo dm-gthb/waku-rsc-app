@@ -1,5 +1,4 @@
 import { getDB } from '../db';
-import { delay } from '../utils';
 import { ProjectList } from '../components/project-list';
 import { requireUser } from '../utils/auth';
 import { LogoutButton } from '../components/logout-button';
@@ -14,8 +13,6 @@ export default async function HomePage() {
       tasks: true,
     },
   });
-
-  await delay(500);
 
   return (
     <>

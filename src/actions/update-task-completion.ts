@@ -4,7 +4,6 @@ import { eq } from 'drizzle-orm';
 import z from 'zod';
 import { getDB } from '../db';
 import { tasks } from '../db/schema';
-import { delay } from '../utils';
 import { requireUser } from '../utils/auth';
 
 const updateTaskCompletionSchema = z.object({
@@ -31,8 +30,6 @@ export async function updateTaskCompletion(taskCompletionData: {
   const db = getDB();
   let originalCompletedAt: string | null = null;
   const updatedTaskIds = new Set<string>([taskId]);
-
-  await delay(2000);
 
   try {
     await requireUser();

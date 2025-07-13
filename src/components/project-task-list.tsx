@@ -5,6 +5,7 @@ import { Task } from '../db/types';
 import { updateTaskCompletion } from '../actions/update-task-completion';
 import { deleteTask } from '../actions/delete-task';
 import { TaskList } from './task-list';
+import { setTaskAndSubtasksCompletion } from '../utils/tasks';
 
 type TaskWithSubtasks = Task & { subtasks?: Task[] };
 
@@ -63,20 +64,7 @@ export function ProjectTaskList({
     const updateTasksOptimistically = (tasks: Array<TaskWithSubtasks>) => {
       let result = tasks.map((task): TaskWithSubtasks => {
         if (task.id === taskId) {
-          const updatedTask = {
-            ...task,
-            completedAt: isCompleting ? new Date().toISOString() : null,
-          };
-          if (updatedTask.subtasks && updatedTask.subtasks.length > 0) {
-            return {
-              ...updatedTask,
-              subtasks: updatedTask.subtasks.map((subtask) => ({
-                ...subtask,
-                completedAt: isCompleting ? new Date().toISOString() : null,
-              })),
-            };
-          }
-          return updatedTask;
+          return setTaskAndSubtasksCompletion(task, isCompleting);
         }
 
         if (task.subtasks && task.subtasks.length > 0) {

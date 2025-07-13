@@ -14,6 +14,7 @@ import { CompletionTaskButton } from './completion-task-button';
 import ActionButton from './action-button';
 import { DemoAlert } from './demo-alert';
 import { useIsDemoMode } from '../context/demo-mode';
+import { setTaskAndSubtasksCompletion } from '../utils/tasks';
 
 export function TaskInfo({
   task,
@@ -40,27 +41,8 @@ export function TaskInfo({
   }) {
     const isCompleting = !isCompleted;
 
-    const updateTaskWithSubtasks = (taskToUpdate: TaskWithSubtasks): TaskWithSubtasks => {
-      const updatedTask = {
-        ...taskToUpdate,
-        completedAt: isCompleting ? new Date().toISOString() : null,
-      };
-
-      if (updatedTask.subtasks && updatedTask.subtasks.length > 0) {
-        return {
-          ...updatedTask,
-          subtasks: updatedTask.subtasks.map((subtask) => ({
-            ...subtask,
-            completedAt: isCompleting ? new Date().toISOString() : null,
-          })),
-        };
-      }
-
-      return updatedTask;
-    };
-
     startTransition(async () => {
-      onOptimisticUpdate(updateTaskWithSubtasks(task));
+      onOptimisticUpdate(setTaskAndSubtasksCompletion(task, isCompleting));
       await manageTaskCompletion({ taskId, isCompleting });
     });
   }
